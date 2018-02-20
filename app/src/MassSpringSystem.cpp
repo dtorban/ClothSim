@@ -46,6 +46,13 @@ void MassSpringSystem::getForces(const VectorXd &x, const VectorXd &v, VectorXd 
 	}
 }
 
+void MassSpringSystem::getAcceleration(const VectorXd &x, const VectorXd &v, VectorXd &a) const {
+	a.setZero();
+	for (int i = 0; i < forces.size(); i++) {
+		forces[i]->addAcceleration(x, v, a);
+	}
+}
+
 void MassSpringSystem::addNode(double mass, glm::vec3 position) {
 	masses.push_back(mass);
 	positions.push_back(position);

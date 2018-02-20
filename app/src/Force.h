@@ -9,13 +9,14 @@ using namespace Eigen;
 class Force {
 public:
 	virtual ~Force() {}
-	virtual void addForces(const VectorXd &x, const VectorXd &v, VectorXd &f) = 0;
+	virtual void addForces(const VectorXd &x, const VectorXd &v, VectorXd &f) {}
+	virtual void addAcceleration(const VectorXd &x, const VectorXd &v, VectorXd &a) {}
 };
 
 class ConstantForce : public Force {
 public:
 	ConstantForce(glm::vec3 vec, int numNodes, int positionOffset) : vec(vec), numNodes(numNodes), positionOffset(positionOffset) {}
-	void addForces(const VectorXd &x, const VectorXd &v, VectorXd &f);
+	void addAcceleration(const VectorXd &x, const VectorXd &v, VectorXd &a);
 private:
 	glm::vec3 vec;
 	int numNodes;

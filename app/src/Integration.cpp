@@ -12,9 +12,10 @@ void ExplicitEulerIntegrator::step(PhysicalSystem& system, double dt, void* memo
     int n = system.getDOFs();
     system.getState(mem.x0, mem.v0);
     system.getInertia(mem.M);
+    system.getAcceleration(mem.x0, mem.v0, mem.a0);
     system.getForces(mem.x0, mem.v0, mem.f0);
     for (int i = 0; i < n; i++) {
-        mem.a0(i) = mem.f0(i)/mem.M(i,i);
+        mem.a0(i) += mem.f0(i)/mem.M(i,i);
     }
 
     if (semiImplicit) {

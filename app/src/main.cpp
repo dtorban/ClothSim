@@ -28,14 +28,14 @@ public:
         transform = glm::rotate(transform, float(-3.141519 / 2), glm::vec3(1.0, 0.0, 0.0));
 
         int width = 10;
-        int height = 10;
+        int height =10;
 
         float dx = 1.0f/float(width);
         float dy = 1.0f/float(height);
 
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
-                cloth.addNode(1.0, glm::vec3(transform*glm::vec4(-0.5f + dx*x, -0.5f + dy*y, 0.0f,1.0f)));
+                cloth.addNode(5.0, glm::vec3(transform*glm::vec4(-0.5f + dx*x, -0.5f + dy*y, 0.0f,1.0f)));
                // nodes.push_back(glm::vec3(transform*glm::vec4(-0.5f + dx*x, -0.5f + dy*y, 0.0f,1.0f))); 
                 //std::cout << nodes[nodes.size()-1][0] << ", " << nodes[nodes.size()-1][1] << ", " << nodes[nodes.size()-1][2] << std::endl;           
                 normals.push_back(glm::vec3(0.0f, 0.0f, 1.0f));
@@ -116,7 +116,8 @@ public:
     void update() {
         //float dt = time - lastTime;
         int count = 0;
-        while (simTime + dt < time) {
+        //while (simTime + dt < time && count < 10) {
+        for (int f = 0; f < 10; f++) {
             //for (int f = 0; f < nodes.size(); f++) {
                 //nodes[f] += glm::vec3(1.0f, 0.0f, 0.0f)*float(dt);
             //}
