@@ -14,10 +14,13 @@ void ConstantForce::addForces(const VectorXd &x, const VectorXd &v, VectorXd &f)
 void AnchorForce::addForces(const VectorXd &x, const VectorXd &v, VectorXd &f) {
 	int nodeSize = f.size()/numNodes;
 	Vector3d dx = x.segment(nodeSize*node + positionOffset, 3) - Vector3d(anchorPoint[0], anchorPoint[1], anchorPoint[2]);
-	Vector3d calc = f.segment(nodeSize*node + positionOffset, 3);
-	std::cout <<"a:" << node << "," << calc[0] << "," << calc[1] << "," << calc[2] << std::endl;
-	calc = -ks*dx - kd*v.segment(nodeSize*node + positionOffset, 3);
-	f.segment(nodeSize*node + positionOffset, 3) += calc;
-	calc = f.segment(nodeSize*node + positionOffset, 3);
-	std::cout <<"b:" << node << "," << calc[0] << "," << calc[1] << "," << calc[2] << std::endl;
+	f.segment(nodeSize*node + positionOffset, 3) += -ks*dx - kd*v.segment(nodeSize*node + positionOffset, 3);
+}
+
+void SpringForce::addForces(const VectorXd &x, const VectorXd &v, VectorXd &f) {
+	int nodeSize = f.size()/numNodes;
+  	Vector3d l = x.segment(nodeSize*node1 + positionOffset, 3) - x.segment(nodeSize*node2 + positionOffset, 3);
+	Vector3d dl = v.segment(nodeSize*node1 + positionOffset, 3) - v.segment(nodeSize*node2 + positionOffset, 3);
+	f.segment(nodeSize*node1 + positionOffset, 3) += -(ks*(l.norm() - l0) + kd*dl.dot(l)/l.norm())*l/l.norm();
+	f.segment(nodeSize*node2 + positionOffset, 3) += (ks*(l.norm() - l0) + kd*dl.dot(l)/l.norm())*l/l.norm();
 }

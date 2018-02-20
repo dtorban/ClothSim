@@ -35,5 +35,18 @@ private:
 	double kd;
 };
 
+class SpringForce : public Force {
+public:
+	SpringForce(int node1, int node2, double ks, double kd, double l0, int numNodes, int positionOffset) : node1(node1), node2(node2), numNodes(numNodes), positionOffset(positionOffset), ks(ks), kd(kd), l0(l0) {}
+	void addForces(const VectorXd &x, const VectorXd &v, VectorXd &f);
+private:
+	int node1;
+	int node2;
+	int numNodes;
+	int positionOffset;
+	double ks;
+	double kd;
+	double l0;
+};
 
 #endif

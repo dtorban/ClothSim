@@ -44,22 +44,29 @@ public:
 
         for (int x = 0; x < width-1 ; x++) {
             for (int y = 0; y < height-1; y++) {
-                indices.push_back(y*width + x);
-                indices.push_back((y+1)*width + x);
-                indices.push_back(y*width + x + 1);
-                indices.push_back(y*width + x + 1);
-                indices.push_back((y+1)*width + x);
-                indices.push_back((y+1)*width + x + 1);
+                indices.push_back(x*height+y);
+                indices.push_back(x*height+y+1);
+                indices.push_back((x+1)*height+y);
+                indices.push_back((x+1)*height+y);
+                indices.push_back(x*height+y+1);
+                indices.push_back((x+1)*height+y+1);
             }
         }
 
-        int node;
+        int node = 0;
         for (int x = 0; x < width ; x++) {
             for (int y = 0; y < height; y++) {
-                if (x == 0 && y == 0) {
+                if (x == 0 || x == width-1) {
                    cloth.addForce(new AnchorForce(node, cloth.getPositions()[node], 500.0, 1.0, cloth.getPositions().size(), 0));
                 }
                 node++;
+            }
+        }
+
+        for (int x = 0; x < width-1 ; x++) {
+            for (int y = 0; y < height; y++) {
+                // horizontal
+                cloth.addForce(new SpringForce(x*height+y, (x+1)*height+y, 200.0, 20.0, dx, cloth.getPositions().size(), 0));
             }
         }
 
