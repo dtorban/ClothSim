@@ -17,13 +17,17 @@ public:
 class Integrator {
 public:
 	virtual ~Integrator() {}
-	virtual void step(PhysicalSystem& system, double dt) = 0;
+	virtual void* allocateMemory(PhysicalSystem& system) = 0;
+	virtual void freeMemory(void* memory) = 0;
+	virtual void step(PhysicalSystem& system, double dt, void* memory) = 0;
 };
 
-class ExplicitIntegrator : public Integrator {
+class ExplicitEulerIntegrator : public Integrator {
 public:
-	virtual ~ExplicitIntegrator() {}
-	void step(PhysicalSystem& system, double dt);
+	virtual ~ExplicitEulerIntegrator() {}	
+	void* allocateMemory(PhysicalSystem& system);
+	void freeMemory(void* memory);
+	void step(PhysicalSystem& system, double dt, void* memory);
 };
 
 #endif

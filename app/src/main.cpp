@@ -18,8 +18,8 @@ using namespace MinVR;
 class MyVRApp : public VRMultithreadedApp {
 public:
 	MyVRApp(int argc, char** argv) : VRMultithreadedApp(argc, argv), model(1.0f), time(0.0f), dt(0.0001), simTime(0.0) {
-        static ExplicitIntegrator explicitIntegrator;
-        integrator = &explicitIntegrator;
+        static ExplicitEulerIntegrator explicitEulerIntegrator;
+        integrator = &explicitEulerIntegrator;
 
         //glm::mat4 transform = glm::translate(glm::mat4(1), glm::vec3(0,-0.5,0));
         //model = glm::translate(glm::mat4(1), glm::vec3(0,-0.5,0));
@@ -80,6 +80,11 @@ public:
 
         cloth.addForce(new ConstantForce(glm::vec3(0.0,-0.5,0.0), cloth.getPositions().size(), 0));
 
+        integratorMemory = integrator->allocateMemory(cloth);
+    }
+
+    ~MyVRApp() {
+        integrator->freeMemory(integratorMemory);
     }
 
 
@@ -114,7 +119,7 @@ public:
             //for (int f = 0; f < nodes.size(); f++) {
                 //nodes[f] += glm::vec3(1.0f, 0.0f, 0.0f)*float(dt);
             //}
-            integrator->step(cloth, dt);
+            integrator->step(cloth, dt, integratorMemory);
             simTime += dt;
             count++;
         }
@@ -320,6 +325,7 @@ private:
     double simTime;
     MassSpringSystem cloth;
     Integrator* integrator;
+    void* integratorMemory;
 };
 
 /// Main method which creates and calls application
