@@ -19,7 +19,8 @@ class MyVRApp : public VRMultithreadedApp {
 public:
 	MyVRApp(int argc, char** argv) : VRMultithreadedApp(argc, argv), model(1.0f), time(0.0f), dt(0.0001), simTime(0.0) {
         static ExplicitEulerIntegrator explicitEulerIntegrator;
-        integrator = &explicitEulerIntegrator;
+        static ExplicitEulerIntegrator semiImplicitEulerIntegrator(true);
+        integrator = &semiImplicitEulerIntegrator;
 
         //glm::mat4 transform = glm::translate(glm::mat4(1), glm::vec3(0,-0.5,0));
         //model = glm::translate(glm::mat4(1), glm::vec3(0,-0.5,0));

@@ -16,8 +16,16 @@ void ExplicitEulerIntegrator::step(PhysicalSystem& system, double dt, void* memo
     for (int i = 0; i < n; i++) {
         mem.a0(i) = mem.f0(i)/mem.M(i,i);
     }
-    mem.x1 = mem.x0 + mem.v0*dt;
-    mem.v1 = mem.v0 + mem.a0*dt;
+
+    if (semiImplicit) {
+        mem.v1 = mem.v0 + mem.a0*dt;
+        mem.x1 = mem.x0 + mem.v1*dt;   
+    }
+    else {
+        mem.x1 = mem.x0 + mem.v0*dt;
+        mem.v1 = mem.v0 + mem.a0*dt;   
+    }
+
 	system.setState(mem.x1, mem.v1);
 }
 

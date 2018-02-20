@@ -24,10 +24,14 @@ public:
 
 class ExplicitEulerIntegrator : public Integrator {
 public:
+	ExplicitEulerIntegrator(bool semiImplicit = false) : semiImplicit(semiImplicit) {}	
 	virtual ~ExplicitEulerIntegrator() {}	
 	void* allocateMemory(PhysicalSystem& system);
 	void freeMemory(void* memory);
 	void step(PhysicalSystem& system, double dt, void* memory);
+
+private:
+	bool semiImplicit;
 };
 
 #endif
