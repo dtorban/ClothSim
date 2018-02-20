@@ -6,6 +6,8 @@ include(${CMAKE_FRAMEWORK_DIR}/project/project.cmake)
 
 set (SOURCEFILES
   src/main.cpp
+  src/Integration.cpp
+  src/MassSpringSystem.cpp
 )
 
 set (HEADERFILES

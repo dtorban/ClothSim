@@ -15,7 +15,7 @@ using namespace MinVR;
  */
 class MyVRApp : public VRMultithreadedApp {
 public:
-	MyVRApp(int argc, char** argv) : VRMultithreadedApp(argc, argv), model(1.0f), lastTime(0.0f), time(0.0f), dt(0.0001), simTime(0.0) {
+	MyVRApp(int argc, char** argv) : VRMultithreadedApp(argc, argv), model(1.0f), time(0.0f), dt(0.0001), simTime(0.0) {
 
         //glm::mat4 transform = glm::translate(glm::mat4(1), glm::vec3(0,-0.5,0));
         model = glm::translate(glm::mat4(1), glm::vec3(0,-0.5,0));
@@ -59,7 +59,6 @@ public:
 
 		// Set time since application began
 		if (event.getName() == "FrameStart") {
-            lastTime = time;
             time = event.getValue("ElapsedSeconds");
 			// Calculate model matrix based on time
             //time = 0.0f;
@@ -82,7 +81,7 @@ public:
         int count = 0;
         while (simTime + dt < time) {
             for (int f = 0; f < nodes.size(); f++) {
-                nodes[f] += glm::vec3(1.0f, 0.0f, 0.0f)*dt;
+                //nodes[f] += glm::vec3(1.0f, 0.0f, 0.0f)*float(dt);
             }
             simTime += dt;
             count++;
@@ -284,10 +283,9 @@ private:
     std::vector<glm::vec3> nodes;
     std::vector<glm::vec3> normals;
     std::vector<glm::vec3> colors;
-    float lastTime;
-    float time;
-    float dt;
-    float simTime;
+    double time;
+    double dt;
+    double simTime;
 };
 
 /// Main method which creates and calls application
