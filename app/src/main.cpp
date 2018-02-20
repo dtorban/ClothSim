@@ -1,11 +1,13 @@
 #include <iostream>
 #include <vector>
+#include "MassSpringSystem.h"
 #include "OpenGL.h"
 #include "glm/glm.hpp"
 #include <glm/gtc/matrix_access.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include "VRMultithreadedApp.h"
+#include "Force.h"
 using namespace MinVR;
 
 /**
@@ -16,6 +18,8 @@ using namespace MinVR;
 class MyVRApp : public VRMultithreadedApp {
 public:
 	MyVRApp(int argc, char** argv) : VRMultithreadedApp(argc, argv), model(1.0f), time(0.0f), dt(0.0001), simTime(0.0) {
+        static ExplicitIntegrator explicitIntegrator;
+        integrator = &explicitIntegrator;
 
         //glm::mat4 transform = glm::translate(glm::mat4(1), glm::vec3(0,-0.5,0));
         model = glm::translate(glm::mat4(1), glm::vec3(0,-0.5,0));
@@ -30,8 +34,9 @@ public:
 
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
-                nodes.push_back(glm::vec3(transform*glm::vec4(-0.5f + dx*x, -0.5f + dy*y, 0.0f,1.0f))); 
-                std::cout << nodes[nodes.size()-1][0] << ", " << nodes[nodes.size()-1][1] << ", " << nodes[nodes.size()-1][2] << std::endl;           
+                cloth.addNode(1.0, glm::vec3(transform*glm::vec4(-0.5f + dx*x, -0.5f + dy*y, 0.0f,1.0f)));
+               // nodes.push_back(glm::vec3(transform*glm::vec4(-0.5f + dx*x, -0.5f + dy*y, 0.0f,1.0f))); 
+                //std::cout << nodes[nodes.size()-1][0] << ", " << nodes[nodes.size()-1][1] << ", " << nodes[nodes.size()-1][2] << std::endl;           
                 normals.push_back(glm::vec3(0.0f, 0.0f, 1.0f));
                 colors.push_back(glm::vec3(0.5f, 0.5f, 0.5f));
 
@@ -48,6 +53,8 @@ public:
                 indices.push_back((y+1)*width + x + 1);
             }
         }
+
+        cloth.addForce(new ConstantForce(glm::vec3(0.0,-1.0,0.0), cloth.getPositions().size(), 0));
 
     }
 
@@ -80,9 +87,10 @@ public:
         //float dt = time - lastTime;
         int count = 0;
         while (simTime + dt < time) {
-            for (int f = 0; f < nodes.size(); f++) {
+            //for (int f = 0; f < nodes.size(); f++) {
                 //nodes[f] += glm::vec3(1.0f, 0.0f, 0.0f)*float(dt);
-            }
+            //}
+            integrator->step(cloth, dt);
             simTime += dt;
             count++;
         }
@@ -105,10 +113,10 @@ public:
                 // Allocate space and send Vertex Data
                 glGenBuffers(1, &vbo);
                 glBindBuffer(GL_ARRAY_BUFFER, vbo);
-                glBufferData(GL_ARRAY_BUFFER, 3*sizeof(float)*(app.nodes.size() + app.normals.size() + app.colors.size()), 0, GL_DYNAMIC_DRAW);
-                glBufferSubData(GL_ARRAY_BUFFER, 0, 3*sizeof(float)*(app.nodes.size()), &app.nodes[0]);
-                glBufferSubData(GL_ARRAY_BUFFER, 3*sizeof(float)*app.nodes.size(), 3*sizeof(float)*app.normals.size(), &app.normals[0]);
-                glBufferSubData(GL_ARRAY_BUFFER, 3*sizeof(float)*(app.nodes.size() + app.normals.size()), 3*sizeof(float)*app.colors.size(), &app.colors[0]);
+                glBufferData(GL_ARRAY_BUFFER, 3*sizeof(float)*(app.cloth.getPositions().size() + app.normals.size() + app.colors.size()), 0, GL_DYNAMIC_DRAW);
+                glBufferSubData(GL_ARRAY_BUFFER, 0, 3*sizeof(float)*(app.cloth.getPositions().size()), &app.cloth.getPositions()[0]);
+                glBufferSubData(GL_ARRAY_BUFFER, 3*sizeof(float)*app.cloth.getPositions().size(), 3*sizeof(float)*app.normals.size(), &app.normals[0]);
+                glBufferSubData(GL_ARRAY_BUFFER, 3*sizeof(float)*(app.cloth.getPositions().size() + app.normals.size()), 3*sizeof(float)*app.colors.size(), &app.colors[0]);
         }
 
         ~Context() {
@@ -117,9 +125,9 @@ public:
 
         void update(const VRGraphicsState &renderState) {
                 glBindBuffer(GL_ARRAY_BUFFER, vbo);
-                glBufferSubData(GL_ARRAY_BUFFER, 0, 3*sizeof(float)*(app.nodes.size()), &app.nodes[0]);
-                glBufferSubData(GL_ARRAY_BUFFER, 3*sizeof(float)*app.nodes.size(), 3*sizeof(float)*app.normals.size(), &app.normals[0]);
-                glBufferSubData(GL_ARRAY_BUFFER, 3*sizeof(float)*(app.nodes.size() + app.normals.size()), 3*sizeof(float)*app.colors.size(), &app.colors[0]);
+                glBufferSubData(GL_ARRAY_BUFFER, 0, 3*sizeof(float)*(app.cloth.getPositions().size()), &app.cloth.getPositions()[0]);
+                glBufferSubData(GL_ARRAY_BUFFER, 3*sizeof(float)*app.cloth.getPositions().size(), 3*sizeof(float)*app.normals.size(), &app.normals[0]);
+                glBufferSubData(GL_ARRAY_BUFFER, 3*sizeof(float)*(app.cloth.getPositions().size() + app.normals.size()), 3*sizeof(float)*app.colors.size(), &app.colors[0]);
         }
 
         GLuint getVbo() { return vbo; }
@@ -148,9 +156,9 @@ public:
                 glEnableVertexAttribArray(0);
                 glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), (char*)0);
                 glEnableVertexAttribArray(1);
-                glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), (char*)0 + 3*sizeof(float)*app.nodes.size());
+                glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), (char*)0 + 3*sizeof(float)*app.cloth.getPositions().size());
                 glEnableVertexAttribArray(2);
-                glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), (char*)0 + 3*sizeof(float)*(app.nodes.size() + app.normals.size()));
+                glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), (char*)0 + 3*sizeof(float)*(app.cloth.getPositions().size() + app.normals.size()));
 
                 // Create shader
                 std::string vertexShader =
@@ -280,12 +288,14 @@ private:
     glm::mat4 model;
     VRMain *vrMain;
     std::vector<unsigned int> indices;
-    std::vector<glm::vec3> nodes;
+    //std::vector<glm::vec3> nodes;
     std::vector<glm::vec3> normals;
     std::vector<glm::vec3> colors;
     double time;
     double dt;
     double simTime;
+    MassSpringSystem cloth;
+    Integrator* integrator;
 };
 
 /// Main method which creates and calls application

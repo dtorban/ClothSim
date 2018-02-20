@@ -8,6 +8,7 @@ set (SOURCEFILES
   src/main.cpp
   src/Integration.cpp
   src/MassSpringSystem.cpp
+  src/Force.cpp
 )
 
 set (HEADERFILES

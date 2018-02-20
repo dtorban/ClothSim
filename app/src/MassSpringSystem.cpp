@@ -33,15 +33,20 @@ void MassSpringSystem::setState(const VectorXd &x, const VectorXd &v) {
 }
 
 void MassSpringSystem::getInertia(MatrixXd &M) const {
+	M.setZero();
 	for (int f = 0; f < masses.size(); f++) {
-		M(f,f) = masses[f];
+		M.block(f*3,f*3, 3,3) = masses[f]*MatrixXd::Identity(3,3);
 	}
 }
 
 void MassSpringSystem::getForces(VectorXd &f) const {
+	f.setZero();
+	for (int i = 0; i < forces.size(); i++) {
+		forces[i]->addForces(f);
+	}
 }
 
-void MassSpringSystem::addNode(double mass, glm::vec3& position) {
+void MassSpringSystem::addNode(double mass, glm::vec3 position) {
 	masses.push_back(mass);
 	positions.push_back(position);
 	velocities.push_back(glm::vec3(0.0f, 0.0f, 0.0f));

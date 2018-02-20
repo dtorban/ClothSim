@@ -15,7 +15,7 @@ public:
     void getInertia(MatrixXd &M) const;
     void getForces(VectorXd &f) const;
 
-    void addNode(double mass, glm::vec3& position);
+    void addNode(double mass, glm::vec3 position);
     void addForce(Force* force);
 
     const std::vector<glm::vec3>& getPositions() const { return positions; }
