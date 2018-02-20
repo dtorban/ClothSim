@@ -39,10 +39,10 @@ void MassSpringSystem::getInertia(MatrixXd &M) const {
 	}
 }
 
-void MassSpringSystem::getForces(VectorXd &f) const {
+void MassSpringSystem::getForces(const VectorXd &x, const VectorXd &v, VectorXd &f) const {
 	f.setZero();
 	for (int i = 0; i < forces.size(); i++) {
-		forces[i]->addForces(f);
+		forces[i]->addForces(x, v, f);
 	}
 }
 

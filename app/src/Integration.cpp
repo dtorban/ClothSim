@@ -7,7 +7,7 @@ void ExplicitIntegrator::step(PhysicalSystem& system, double dt) {
     MatrixXd M(n,n);
     system.getInertia(M);
     VectorXd f0(n);
-    system.getForces(f0);
+    system.getForces(x0, v0, f0);
     VectorXd a0(n); // acceleration
     for (int i = 0; i < n; i++) {
         a0(i) = f0(i)/M(i,i);

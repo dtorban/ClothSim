@@ -39,7 +39,6 @@ public:
                 //std::cout << nodes[nodes.size()-1][0] << ", " << nodes[nodes.size()-1][1] << ", " << nodes[nodes.size()-1][2] << std::endl;           
                 normals.push_back(glm::vec3(0.0f, 0.0f, 1.0f));
                 colors.push_back(glm::vec3(0.5f, 0.5f, 0.5f));
-
             }
         }
 
@@ -54,7 +53,17 @@ public:
             }
         }
 
-        cloth.addForce(new ConstantForce(glm::vec3(0.0,-1.0,0.0), cloth.getPositions().size(), 0));
+        int node;
+        for (int x = 0; x < width ; x++) {
+            for (int y = 0; y < height; y++) {
+                if (x == 0 && y == 0) {
+                   cloth.addForce(new AnchorForce(node, cloth.getPositions()[node], 500.0, 1.0, cloth.getPositions().size(), 0));
+                }
+                node++;
+            }
+        }
+
+        cloth.addForce(new ConstantForce(glm::vec3(0.0,-0.5,0.0), cloth.getPositions().size(), 0));
 
     }
 

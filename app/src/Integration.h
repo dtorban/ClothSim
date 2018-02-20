@@ -11,7 +11,7 @@ public:
     virtual void getState(VectorXd &x, VectorXd &v) const = 0;
     virtual void setState(const VectorXd &x, const VectorXd &v) = 0;
     virtual void getInertia(MatrixXd &M) const = 0;
-    virtual void getForces(VectorXd &f) const = 0;
+    virtual void getForces(const VectorXd &x, const VectorXd &v, VectorXd &f) const = 0;
 };
 
 class Integrator {
