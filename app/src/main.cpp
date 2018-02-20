@@ -2,6 +2,9 @@
 #include <vector>
 #include "OpenGL.h"
 #include "glm/glm.hpp"
+#include <glm/gtc/matrix_access.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include "VRMultithreadedApp.h"
 using namespace MinVR;
 
@@ -12,31 +15,39 @@ using namespace MinVR;
  */
 class MyVRApp : public VRMultithreadedApp {
 public:
-	MyVRApp(int argc, char** argv) : VRMultithreadedApp(argc, argv) {
-        nodes.push_back(glm::vec3(0.0f, 0.0f, 0.0f));
-        nodes.push_back(glm::vec3(1.0f, 1.0f, 0.0f));
-        nodes.push_back(glm::vec3(1.0f, 0.0f, 0.0f));
-        normals.push_back(glm::vec3(0.0f, 0.0f, 1.0f));
-        normals.push_back(glm::vec3(0.0f, 0.0f, 1.0f));
-        normals.push_back(glm::vec3(0.0f, 0.0f, 1.0f));
-        colors.push_back(glm::vec3(1.0f, 0.0f, 0.0f));
-        colors.push_back(glm::vec3(0.0f, 1.0f, 0.0f));
-        colors.push_back(glm::vec3(0.0f, 0.0f, 1.0f));
-        nodes.push_back(glm::vec3(1.0f, 0.0f, 0.0f));
-        nodes.push_back(glm::vec3(0.0f, 1.0f, 0.0f));
-        nodes.push_back(glm::vec3(0.0f, 1.0f, 1.0f));
-        normals.push_back(glm::vec3(0.0f, 0.0f, 1.0f));
-        normals.push_back(glm::vec3(0.0f, 0.0f, 1.0f));
-        normals.push_back(glm::vec3(0.0f, 0.0f, 1.0f));
-        colors.push_back(glm::vec3(1.0f, 0.0f, 0.0f));
-        colors.push_back(glm::vec3(0.0f, 1.0f, 0.0f));
-        colors.push_back(glm::vec3(0.0f, 0.0f, 1.0f));
-        indices.push_back(0);
-        indices.push_back(1);
-        indices.push_back(2);
-        indices.push_back(3);
-        indices.push_back(4);
-        indices.push_back(5);
+	MyVRApp(int argc, char** argv) : VRMultithreadedApp(argc, argv), model(1.0f), lastTime(0.0f), time(0.0f), dt(0.0001), simTime(0.0) {
+
+        //glm::mat4 transform = glm::translate(glm::mat4(1), glm::vec3(0,-0.5,0));
+        model = glm::translate(glm::mat4(1), glm::vec3(0,-0.5,0));
+        glm::mat4 transform(1.0f);
+        transform = glm::rotate(transform, float(-3.141519 / 2), glm::vec3(1.0, 0.0, 0.0));
+
+        int width = 10;
+        int height = 10;
+
+        float dx = 1.0f/float(width);
+        float dy = 1.0f/float(height);
+
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                nodes.push_back(glm::vec3(transform*glm::vec4(-0.5f + dx*x, -0.5f + dy*y, 0.0f,1.0f))); 
+                std::cout << nodes[nodes.size()-1][0] << ", " << nodes[nodes.size()-1][1] << ", " << nodes[nodes.size()-1][2] << std::endl;           
+                normals.push_back(glm::vec3(0.0f, 0.0f, 1.0f));
+                colors.push_back(glm::vec3(0.5f, 0.5f, 0.5f));
+
+            }
+        }
+
+        for (int x = 0; x < width-1 ; x++) {
+            for (int y = 0; y < height-1; y++) {
+                indices.push_back(y*width + x);
+                indices.push_back((y+1)*width + x);
+                indices.push_back(y*width + x + 1);
+                indices.push_back(y*width + x + 1);
+                indices.push_back((y+1)*width + x);
+                indices.push_back((y+1)*width + x + 1);
+            }
+        }
 
     }
 
@@ -48,13 +59,15 @@ public:
 
 		// Set time since application began
 		if (event.getName() == "FrameStart") {
-            float time = event.getValue("ElapsedSeconds");
+            lastTime = time;
+            time = event.getValue("ElapsedSeconds");
 			// Calculate model matrix based on time
+            //time = 0.0f;
 			VRMatrix4 modelMatrix = VRMatrix4::rotationX(0.5f*time);
 			modelMatrix = modelMatrix * VRMatrix4::rotationY(0.5f*time);
-			for (int f = 0; f < 16; f++) {
+			/*for (int f = 0; f < 16; f++) {
 				model[f] = modelMatrix.getArray()[f];
-			}
+			}*/
 			return;
 		}
 
@@ -63,6 +76,18 @@ public:
 			running = false;
 		}
 	}
+
+    void update() {
+        //float dt = time - lastTime;
+        int count = 0;
+        while (simTime + dt < time) {
+            for (int f = 0; f < nodes.size(); f++) {
+                nodes[f] += glm::vec3(1.0f, 0.0f, 0.0f)*dt;
+            }
+            simTime += dt;
+            count++;
+        }
+    }
 
     class Context : public VRAppSharedContext {
     public:
@@ -92,6 +117,10 @@ public:
         }
 
         void update(const VRGraphicsState &renderState) {
+                glBindBuffer(GL_ARRAY_BUFFER, vbo);
+                glBufferSubData(GL_ARRAY_BUFFER, 0, 3*sizeof(float)*(app.nodes.size()), &app.nodes[0]);
+                glBufferSubData(GL_ARRAY_BUFFER, 3*sizeof(float)*app.nodes.size(), 3*sizeof(float)*app.normals.size(), &app.normals[0]);
+                glBufferSubData(GL_ARRAY_BUFFER, 3*sizeof(float)*(app.nodes.size() + app.normals.size()), 3*sizeof(float)*app.colors.size(), &app.colors[0]);
         }
 
         GLuint getVbo() { return vbo; }
@@ -187,11 +216,12 @@ public:
             loc = glGetUniformLocation(shaderProgram, "ViewMatrix");
             glUniformMatrix4fv(loc, 1, GL_FALSE, viewMat);
             loc = glGetUniformLocation(shaderProgram, "ModelMatrix");
-            glUniformMatrix4fv(loc, 1, GL_FALSE, app.model);
+            glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(app.model));
 
             // Draw cube
             glBindVertexArray(vao);
             glDrawElements(GL_TRIANGLES, app.indices.size(), GL_UNSIGNED_INT, (void*)0);
+            //glDrawElements(GL_POINTS, app.indices.size(), GL_UNSIGNED_INT, (void*)0);
             glBindVertexArray(0);
 
             // reset program
@@ -247,12 +277,17 @@ public:
     }
 
 private:
-	float model[16];
+	//float model[16];
+    glm::mat4 model;
     VRMain *vrMain;
     std::vector<unsigned int> indices;
     std::vector<glm::vec3> nodes;
     std::vector<glm::vec3> normals;
     std::vector<glm::vec3> colors;
+    float lastTime;
+    float time;
+    float dt;
+    float simTime;
 };
 
 /// Main method which creates and calls application
