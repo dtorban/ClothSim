@@ -22,7 +22,7 @@ public:
         integrator = &explicitIntegrator;
 
         //glm::mat4 transform = glm::translate(glm::mat4(1), glm::vec3(0,-0.5,0));
-        model = glm::translate(glm::mat4(1), glm::vec3(0,-0.5,0));
+        //model = glm::translate(glm::mat4(1), glm::vec3(0,-0.5,0));
         glm::mat4 transform(1.0f);
         transform = glm::rotate(transform, float(-3.141519 / 2), glm::vec3(1.0, 0.0, 0.0));
 
@@ -56,8 +56,9 @@ public:
         int node = 0;
         for (int x = 0; x < width ; x++) {
             for (int y = 0; y < height; y++) {
-                if (x == 0 || x == width-1) {
-                   cloth.addForce(new AnchorForce(node, cloth.getPositions()[node], 500.0, 1.0, cloth.getPositions().size(), 0));
+                if (x == 0) {
+                //if ((x == 0 && y == 0) || (x == 0 && y == height-1)) {
+                   cloth.addForce(new AnchorForce(node, cloth.getPositions()[node], 500.0, 20.0, cloth.getPositions().size(), 0));
                 }
                 node++;
             }
@@ -66,7 +67,14 @@ public:
         for (int x = 0; x < width-1 ; x++) {
             for (int y = 0; y < height; y++) {
                 // horizontal
-                cloth.addForce(new SpringForce(x*height+y, (x+1)*height+y, 200.0, 20.0, dx, cloth.getPositions().size(), 0));
+                cloth.addForce(new SpringForce(x*height+y, (x+1)*height+y, 500.0, 50.0, dx, cloth.getPositions().size(), 0));
+            }
+        }
+
+        for (int x = 0; x < width ; x++) {
+            for (int y = 0; y < height-1; y++) {
+                // vertical
+                cloth.addForce(new SpringForce(x*height+y, x*height+y+1, 500.0, 50.0, dx, cloth.getPositions().size(), 0));
             }
         }
 
