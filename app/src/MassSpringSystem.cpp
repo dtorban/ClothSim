@@ -4,6 +4,10 @@ MassSpringSystem::~MassSpringSystem() {
 	for (int f = 0; f < forces.size(); f++) {
 		delete forces[f];
 	}
+
+	for (int f = 0; f < colliders.size(); f++) {
+		delete colliders[f];
+	}
 }
 
 int MassSpringSystem::getDOFs() const {
@@ -61,4 +65,23 @@ void MassSpringSystem::addNode(double mass, glm::vec3 position) {
 
 void MassSpringSystem::addForce(Force* force) {
 	forces.push_back(force);
+}
+
+void MassSpringSystem::addCollider(Collider* collider) {
+	colliders.push_back(collider);
+}
+
+#include <iostream>
+void MassSpringSystem::handleCollisions() {
+	Collision collision;
+	for (int f = 0; f < positions.size(); f++) {
+		for (int i = 0; i < colliders.size(); i++) {
+			if(colliders[i]->checkCollision(positions[f], collision)) {
+				//std::cout << "Collision" << std::endl;
+				glm::vec3 bounce = glm::dot(velocities[f], collision.normal)*collision.normal;
+				velocities[f] -= 0.5f*bounce;
+				positions[f] = collision.collisionPoint;
+			}
+		}
+	}
 }

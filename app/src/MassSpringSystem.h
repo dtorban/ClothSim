@@ -5,6 +5,7 @@
 #include <vector>
 #include "glm/glm.hpp"
 #include "Force.h"
+#include "Collider.h"
 
 class MassSpringSystem : public PhysicalSystem {
 public:
@@ -18,6 +19,8 @@ public:
 
     void addNode(double mass, glm::vec3 position);
     void addForce(Force* force);
+    void addCollider(Collider* collider);
+    void handleCollisions();
 
     const std::vector<glm::vec3>& getPositions() const { return positions; }
 
@@ -26,6 +29,7 @@ private:
 	std::vector<glm::vec3> positions;
 	std::vector<glm::vec3> velocities;
 	std::vector<Force*> forces;
+	std::vector<Collider*> colliders;
 };
 
 #endif

@@ -9,6 +9,7 @@ set (SOURCEFILES
   src/Integration.cpp
   src/MassSpringSystem.cpp
   src/Force.cpp
+  src/Collider.cpp
 )
 
 set (HEADERFILES

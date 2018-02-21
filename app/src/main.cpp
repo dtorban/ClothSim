@@ -80,6 +80,7 @@ public:
         }
 
         cloth.addForce(new ConstantForce(glm::vec3(0.0,-0.5,0.0), cloth.getPositions().size(), 0));
+        cloth.addCollider(new SphereCollider(glm::vec3(0.5,-0.6,0.0), 0.5));
 
         integratorMemory = integrator->allocateMemory(cloth);
     }
@@ -122,6 +123,7 @@ public:
                 //nodes[f] += glm::vec3(1.0f, 0.0f, 0.0f)*float(dt);
             //}
             integrator->step(cloth, dt, integratorMemory);
+            cloth.handleCollisions();
             simTime += dt;
             count++;
         }
