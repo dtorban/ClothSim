@@ -19,8 +19,9 @@ public:
 	SphereCollider(glm::vec3 center, float radius) : center(center), radius(radius) {}
 	virtual ~SphereCollider() {}
 	bool checkCollision(glm::vec3 point, Collision& collision);
-private:
+
 	glm::vec3 center;
+private:
 	float radius;
 };
 

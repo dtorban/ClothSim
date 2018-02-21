@@ -17,7 +17,7 @@ using namespace MinVR;
  */
 class MyVRApp : public VRMultithreadedApp {
 public:
-	MyVRApp(int argc, char** argv) : VRMultithreadedApp(argc, argv), model(1.0f), time(0.0f), dt(0.0001), simTime(0.0) {
+	MyVRApp(int argc, char** argv) : VRMultithreadedApp(argc, argv), model(1.0f), time(0.0f), dt(0.001), simTime(0.0), sphere(glm::vec3(0.5,-0.6,0.0), 0.5) {
         static ExplicitEulerIntegrator explicitEulerIntegrator;
         static ExplicitEulerIntegrator semiImplicitEulerIntegrator(true);
         integrator = &semiImplicitEulerIntegrator;
@@ -27,8 +27,8 @@ public:
         glm::mat4 transform(1.0f);
         transform = glm::rotate(transform, float(-3.141519 / 2), glm::vec3(1.0, 0.0, 0.0));
 
-        int width = 10;
-        int height =10;
+        int width = 20;
+        int height =20;
 
         float dx = 1.0f/float(width);
         float dy = 1.0f/float(height);
@@ -68,19 +68,19 @@ public:
         for (int x = 0; x < width-1 ; x++) {
             for (int y = 0; y < height; y++) {
                 // horizontal
-                cloth.addForce(new SpringForce(x*height+y, (x+1)*height+y, 500.0, 50.0, dx, cloth.getPositions().size(), 0));
+                cloth.addForce(new SpringForce(x*height+y, (x+1)*height+y, 1000.0, 500.0, dx, cloth.getPositions().size(), 0));
             }
         }
 
         for (int x = 0; x < width ; x++) {
             for (int y = 0; y < height-1; y++) {
                 // vertical
-                cloth.addForce(new SpringForce(x*height+y, x*height+y+1, 500.0, 50.0, dx, cloth.getPositions().size(), 0));
+                cloth.addForce(new SpringForce(x*height+y, x*height+y+1, 1000.0, 500.0, dx, cloth.getPositions().size(), 0));
             }
         }
 
         cloth.addForce(new ConstantForce(glm::vec3(0.0,-0.5,0.0), cloth.getPositions().size(), 0));
-        cloth.addCollider(new SphereCollider(glm::vec3(0.5,-0.6,0.0), 0.5));
+        cloth.addCollider(&sphere);
 
         integratorMemory = integrator->allocateMemory(cloth);
     }
@@ -124,6 +124,7 @@ public:
             //}
             integrator->step(cloth, dt, integratorMemory);
             cloth.handleCollisions();
+            sphere.center += glm::vec3(-0.0001, 0.0, 0.0);
             simTime += dt;
             count++;
         }
@@ -330,6 +331,7 @@ private:
     MassSpringSystem cloth;
     Integrator* integrator;
     void* integratorMemory;
+    SphereCollider sphere;
 };
 
 /// Main method which creates and calls application
