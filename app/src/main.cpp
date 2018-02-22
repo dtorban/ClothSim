@@ -17,10 +17,12 @@ using namespace MinVR;
  */
 class MyVRApp : public VRMultithreadedApp {
 public:
-	MyVRApp(int argc, char** argv) : VRMultithreadedApp(argc, argv), model(1.0f), time(0.0f), dt(0.002), simTime(0.0), sphere(glm::vec3(0.5,-0.6,0.0), 0.5) {
+	MyVRApp(int argc, char** argv) : VRMultithreadedApp(argc, argv), model(1.0f), time(0.0f), dt(0.006), simTime(0.0), sphere(glm::vec3(0.5,-0.6,0.0), 0.5) {
         static ExplicitEulerIntegrator explicitEulerIntegrator;
         static ExplicitEulerIntegrator semiImplicitEulerIntegrator(true);
+        static RungaKutta4Integrator rungaKutta4Integrator;
         integrator = &semiImplicitEulerIntegrator;
+        integrator = &rungaKutta4Integrator;
 
         //glm::mat4 transform = glm::translate(glm::mat4(1), glm::vec3(0,-0.5,0));
         model = glm::translate(glm::mat4(1), glm::vec3(0.5,1.5,0));
@@ -29,7 +31,7 @@ public:
         transform = glm::rotate(transform, float(-3.141519 / 2), glm::vec3(1.0, 0.0, 0.0));
 
         int width = 20;
-        int height =20;
+        int height = 20;
 
         float dx = 1.0f/float(width);
         float dy = 1.0f/float(height);
@@ -56,7 +58,7 @@ public:
         }
 
         for (int f = 0; f < indices.size(); f+=3) {
-            cloth.addForce(new AreoForce(indices[f], indices[f+1], indices[f+2], 10.0, 200.0, glm::vec3(1.0f, 0.0f, 0.0f), cloth.getPositions().size(), 0));
+            cloth.addForce(new AreoForce(indices[f], indices[f+1], indices[f+2], 10.0, 200.0, glm::vec3(0.5f, 0.0f, 0.0f), cloth.getPositions().size(), 0));
         }
 
         int node = 0;
@@ -138,6 +140,15 @@ public:
 	}
 
     void update() {
+
+        framesSinceLastFPS++;
+
+        if (framesSinceLastFPS > 50) {
+            std::cout << float(framesSinceLastFPS)/(time - lastTimeFPS) << std::endl;
+            lastTimeFPS = time;
+            framesSinceLastFPS = 0;
+        }
+
         //float dt = time - lastTime;
         int count = 0;
         //while (simTime + dt < time && count < 10) {
@@ -386,6 +397,8 @@ private:
     Integrator* integrator;
     void* integratorMemory;
     SphereCollider sphere;
+    float lastTimeFPS;
+    int framesSinceLastFPS;
 };
 
 /// Main method which creates and calls application

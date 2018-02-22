@@ -37,3 +37,64 @@ void* ExplicitEulerIntegrator::allocateMemory(PhysicalSystem& system) {
 void ExplicitEulerIntegrator::freeMemory(void* memory) {
     delete static_cast<ExplicitEulerMemory*>(memory);
 }
+
+
+
+struct RungaKutta4Memory {
+    RungaKutta4Memory(int n) :
+        x0(n), v0(n), f0(n), a0(n), x1(n), v1(n), M(n,n), 
+        k1X(n), k2X(n), k3X(n), k4X(n), 
+        k1V(n), k2V(n), k3V(n), k4V(n), 
+        tempX(n), tempV(n), n(n) {}
+    VectorXd x0, v0, f0, a0, x1, v1, tempX, tempV;
+    VectorXd k1X, k2X, k3X, k4X;
+    VectorXd k1V, k2V, k3V, k4V;
+    MatrixXd M;
+    int n;
+};
+
+void RungaKutta4_calc_deriviative(PhysicalSystem& system, RungaKutta4Memory& mem, double dt, 
+    const VectorXd& x, const VectorXd& v, VectorXd& derivativeX, VectorXd derivativeV, VectorXd& derivativeOutX, VectorXd derivativeOutV, VectorXd& tempX, VectorXd& tempV) {
+
+    tempX = x + derivativeX*dt;
+    tempV = v + derivativeV*dt;
+
+    system.getAcceleration(tempX, tempV, mem.a0);
+    system.getForces(tempX, tempV, mem.f0);
+    for (int i = 0; i < mem.n; i++) {
+        mem.a0(i) += mem.f0(i)/mem.M(i,i);
+    }
+
+    derivativeOutV = mem.a0;
+    derivativeOutX = v + mem.a0*dt;
+}
+
+void RungaKutta4Integrator::step(PhysicalSystem& system, double dt, void* memory) {
+
+    RungaKutta4Memory& mem = *static_cast<RungaKutta4Memory*>(memory);
+    int n = system.getDOFs();
+    system.getState(mem.x0, mem.v0);
+    system.getInertia(mem.M);
+
+    RungaKutta4_calc_deriviative(system, mem, 0.0, mem.x0, mem.v0, mem.k1X, mem.k1V, mem.k1X, mem.k1V, mem.tempX, mem.tempV);
+    RungaKutta4_calc_deriviative(system, mem, dt/2.0, mem.x0, mem.v0, mem.k1X, mem.k1V, mem.k2X, mem.k2V, mem.tempX, mem.tempV);
+    RungaKutta4_calc_deriviative(system, mem, dt/2.0, mem.x0, mem.v0, mem.k2X, mem.k2V, mem.k3X, mem.k3V, mem.tempX, mem.tempV);
+    RungaKutta4_calc_deriviative(system, mem, dt, mem.x0, mem.v0, mem.k3X, mem.k3V, mem.k4X, mem.k4V, mem.tempX, mem.tempV);
+
+    mem.v0 = 1.0 / 6.0 * ( mem.k1X + 2.0*(mem.k2X + mem.k3X) + mem.k4X );
+    mem.a0 = 1.0 / 6.0 * ( mem.k1V + 2.0*(mem.k2V + mem.k3V) + mem.k4V );
+
+    mem.x1 = mem.x0 + mem.v0*dt;
+    mem.v1 = mem.v0 + mem.a0*dt;
+
+    system.setState(mem.x1, mem.v1);
+}
+
+void* RungaKutta4Integrator::allocateMemory(PhysicalSystem& system) {
+    return new RungaKutta4Memory(system.getDOFs());
+}
+
+void RungaKutta4Integrator::freeMemory(void* memory) {
+    delete static_cast<RungaKutta4Memory*>(memory);
+}
+

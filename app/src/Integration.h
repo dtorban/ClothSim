@@ -35,4 +35,13 @@ private:
 	bool semiImplicit;
 };
 
+class RungaKutta4Integrator : public Integrator {
+public:
+	RungaKutta4Integrator() {}	
+	virtual ~RungaKutta4Integrator() {}	
+	void* allocateMemory(PhysicalSystem& system);
+	void freeMemory(void* memory);
+	void step(PhysicalSystem& system, double dt, void* memory);
+};
+
 #endif
