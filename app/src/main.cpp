@@ -74,13 +74,19 @@ public:
             for (int y = 0; y < height; y++) {
                 // horizontal
                 cloth.addForce(new SpringForce(x*height+y, (x+1)*height+y, 2000.0, 500.0, dx, cloth.getPositions().size(), 0));
+                if (x < (width-1)/2 && y <(height-1)/2) {
+                    cloth.addForce(new SpringForce((2*x)*height+(2*y), 2*(x+1)*height+2*y, 1000.0, 200.0, dx*2, cloth.getPositions().size(), 0));   
+                }
             }
         }
 
         for (int x = 0; x < width ; x++) {
             for (int y = 0; y < height-1; y++) {
                 // vertical
-                cloth.addForce(new SpringForce(x*height+y, x*height+y+1, 2000.0, 500.0, dx, cloth.getPositions().size(), 0));
+                cloth.addForce(new SpringForce(x*height+y, x*height+y+1, 2000.0, 500.0, dy, cloth.getPositions().size(), 0));
+                if (x < (width-1)/2 && y <(height-1)/2) {
+                    cloth.addForce(new SpringForce(2*x*height+2*y, 2*x*height+2*(y+1), 1000.0, 300.0, dy*2, cloth.getPositions().size(), 0));   
+                }
             }
         }
 
@@ -89,6 +95,10 @@ public:
             for (int y = 0; y < height-1; y++) {
                 cloth.addForce(new SpringForce(x*height+y, (x+1)*height+y+1, 500.0, 200.0, glm::sqrt(dx*dx+dy*dy), cloth.getPositions().size(), 0));
                 cloth.addForce(new SpringForce((x+1)*height+y, x*height+y+1, 500.0, 200.0, glm::sqrt(dx*dx+dy*dy), cloth.getPositions().size(), 0));
+                if (x < (width-1)/2 && y <(height-1)/2) {
+                    cloth.addForce(new SpringForce(2*(x*height+y), 2*((x+1)*height+y+1), 300.0, 100.0, glm::sqrt(dx*dx+dy*dy)*2, cloth.getPositions().size(), 0));
+                    cloth.addForce(new SpringForce(2*((x+1)*height+y), 2*(x*height+y+1), 300.0, 100.0, glm::sqrt(dx*dx+dy*dy)*2, cloth.getPositions().size(), 0));   
+                }
             }
         }
 
