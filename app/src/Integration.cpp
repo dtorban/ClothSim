@@ -132,7 +132,7 @@ void ImplicitEulerIntegrator::step(PhysicalSystem& system, double dt, void* memo
 
     mem.dv = solve(mem.A,mem.b);
 
-    mem.v1 = mem.v0 + mem.dv;
+    mem.v1 = mem.v0 + mem.dv*dt;
     mem.x1 = mem.x0 + mem.v1*dt;   
 
     system.setState(mem.x1, mem.v1);

@@ -11,10 +11,25 @@ void ConstantForce::addAcceleration(const VectorXd &x, const VectorXd &v, Vector
 	}
 }
 
+void ConstantForce::addJacobians(const VectorXd &x, const VectorXd &v, MatrixXd &Jx, MatrixXd &Jv) {
+	int nodeSize = x.size()/numNodes;
+	for (int i = 0; i < numNodes; i++) {
+		for (int j = 0; j < 3; j++) {
+			Jx(nodeSize*i + positionOffset + j, nodeSize*i + positionOffset + j) += vec[j];
+		}
+	}
+}
+
 void AnchorForce::addForces(const VectorXd &x, const VectorXd &v, VectorXd &f) {
 	int nodeSize = f.size()/numNodes;
 	Vector3d dx = x.segment(nodeSize*node + positionOffset, 3) - Vector3d(anchorPoint[0], anchorPoint[1], anchorPoint[2]);
 	f.segment(nodeSize*node + positionOffset, 3) += -ks*dx - kd*v.segment(nodeSize*node + positionOffset, 3);
+}
+
+void AnchorForce::addJacobians(const VectorXd &x, const VectorXd &v, MatrixXd &Jx, MatrixXd &Jv) {
+	int nodeSize = x.size()/numNodes;
+	Jx.block(nodeSize*node + positionOffset,nodeSize*node + positionOffset, 3,3) += -ks*Matrix2d::Identity();
+    Jv.block(nodeSize*node + positionOffset,nodeSize*node + positionOffset, 3,3) += -kd*Matrix2d::Identity();
 }
 
 void SpringForce::addForces(const VectorXd &x, const VectorXd &v, VectorXd &f) {
@@ -68,6 +83,8 @@ void AreoForce::addForces(const VectorXd &x, const VectorXd &v, VectorXd &f) {
 	Vector3d v1 = v.segment(nodeSize*nodes[0] + positionOffset, 3);
 	Vector3d v2 = v.segment(nodeSize*nodes[1] + positionOffset, 3);
 	Vector3d v3 = v.segment(nodeSize*nodes[2] + positionOffset, 3);
+
+	//airV += glm::vec3(0.001,0.0,0.0);
 
 	Vector3d vNew = (v1 + v2 + v3)/3.0 - Vector3d(airV[0], airV[1], airV[2]);
 

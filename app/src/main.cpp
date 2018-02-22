@@ -17,14 +17,21 @@ using namespace MinVR;
  */
 class MyVRApp : public VRMultithreadedApp {
 public:
-	MyVRApp(int argc, char** argv) : VRMultithreadedApp(argc, argv), model(1.0f), time(0.0f), dt(0.006), simTime(0.0), sphere(glm::vec3(0.5,-0.6,0.0), 0.5) {
+	MyVRApp(int argc, char** argv) : VRMultithreadedApp(argc, argv), model(1.0f), time(0.0f), dt(0.005), simTime(0.0), sphere(glm::vec3(0.5,-0.6,0.0), 0.5), iterationsPerFrame(10) {
         static ExplicitEulerIntegrator explicitEulerIntegrator;
         static ExplicitEulerIntegrator semiImplicitEulerIntegrator(true);
         static RungaKutta4Integrator rungaKutta4Integrator;
         static ImplicitEulerIntegrator implicitEulerIntegrator;
-        integrator = &semiImplicitEulerIntegrator;
-        integrator = &rungaKutta4Integrator;
-        integrator = &implicitEulerIntegrator; dt = 0.1;
+
+        int width = 10;
+        int height = 10;
+
+        //integrator = &semiImplicitEulerIntegrator;
+        integrator = &rungaKutta4Integrator; dt = 0.006; width = 20; height = 20;
+        integrator = &implicitEulerIntegrator; dt = 0.01; iterationsPerFrame = 20; width = 10; height = 10;
+
+        float ks = 2000.0f;
+        float kd = 500.0f;
 
         //glm::mat4 transform = glm::translate(glm::mat4(1), glm::vec3(0,-0.5,0));
         model = glm::translate(glm::mat4(1), glm::vec3(0.5,1.5,0));
@@ -32,8 +39,6 @@ public:
         glm::mat4 transform(1.0f);
         transform = glm::rotate(transform, float(-3.141519 / 2), glm::vec3(1.0, 0.0, 0.0));
 
-        int width = 20;
-        int height = 20;
 
         float dx = 1.0f/float(width);
         float dy = 1.0f/float(height);
@@ -60,7 +65,7 @@ public:
         }
 
         for (int f = 0; f < indices.size(); f+=3) {
-            cloth.addForce(new AreoForce(indices[f], indices[f+1], indices[f+2], 10.0, 200.0, glm::vec3(0.5f, 0.0f, 0.0f), cloth.getPositions().size(), 0));
+            cloth.addForce(new AreoForce(indices[f], indices[f+1], indices[f+2], 10.0, 100.0, glm::vec3(0.5f, 0.0f, 0.0f), cloth.getPositions().size(), 0));
         }
 
         int node = 0;
@@ -68,7 +73,7 @@ public:
             for (int y = 0; y < height; y++) {
                 if (x == 0) {
                 //if ((x == 0 && y == 0) || (x == 0 && y == height-1)) {
-                   cloth.addForce(new AnchorForce(node, cloth.getPositions()[node], 2000.0, 20.0, cloth.getPositions().size(), 0));
+                   cloth.addForce(new AnchorForce(node, cloth.getPositions()[node], 2000, 20.0, cloth.getPositions().size(), 0));
                 }
                 node++;
             }
@@ -77,9 +82,9 @@ public:
         for (int x = 0; x < width-1 ; x++) {
             for (int y = 0; y < height; y++) {
                 // horizontal
-                cloth.addForce(new SpringForce(x*height+y, (x+1)*height+y, 2000.0, 500.0, dx, cloth.getPositions().size(), 0));
+                cloth.addForce(new SpringForce(x*height+y, (x+1)*height+y, ks, kd, dx, cloth.getPositions().size(), 0));
                 if (x < (width-1)/2 && y <(height-1)/2) {
-                    cloth.addForce(new SpringForce((2*x)*height+(2*y), 2*(x+1)*height+2*y, 1000.0, 200.0, dx*2, cloth.getPositions().size(), 0));   
+                    cloth.addForce(new SpringForce((2*x)*height+(2*y), 2*(x+1)*height+2*y, ks/2, kd/2, dx*2, cloth.getPositions().size(), 0));   
                 }
             }
         }
@@ -87,9 +92,9 @@ public:
         for (int x = 0; x < width ; x++) {
             for (int y = 0; y < height-1; y++) {
                 // vertical
-                cloth.addForce(new SpringForce(x*height+y, x*height+y+1, 2000.0, 500.0, dy, cloth.getPositions().size(), 0));
+                cloth.addForce(new SpringForce(x*height+y, x*height+y+1, ks, kd, dy, cloth.getPositions().size(), 0));
                 if (x < (width-1)/2 && y <(height-1)/2) {
-                    cloth.addForce(new SpringForce(2*x*height+2*y, 2*x*height+2*(y+1), 1000.0, 300.0, dy*2, cloth.getPositions().size(), 0));   
+                    cloth.addForce(new SpringForce(2*x*height+2*y, 2*x*height+2*(y+1), ks/2, kd/2, dy*2, cloth.getPositions().size(), 0));   
                 }
             }
         }
@@ -97,11 +102,11 @@ public:
         // Add cross forces
         for (int x = 0; x < width-1 ; x++) {
             for (int y = 0; y < height-1; y++) {
-                cloth.addForce(new SpringForce(x*height+y, (x+1)*height+y+1, 500.0, 200.0, glm::sqrt(dx*dx+dy*dy), cloth.getPositions().size(), 0));
-                cloth.addForce(new SpringForce((x+1)*height+y, x*height+y+1, 500.0, 200.0, glm::sqrt(dx*dx+dy*dy), cloth.getPositions().size(), 0));
+                cloth.addForce(new SpringForce(x*height+y, (x+1)*height+y+1, ks/2, kd/2, glm::sqrt(dx*dx+dy*dy), cloth.getPositions().size(), 0));
+                cloth.addForce(new SpringForce((x+1)*height+y, x*height+y+1, ks/2, kd/2, glm::sqrt(dx*dx+dy*dy), cloth.getPositions().size(), 0));
                 if (x < (width-1)/2 && y <(height-1)/2) {
-                    cloth.addForce(new SpringForce(2*(x*height+y), 2*((x+1)*height+y+1), 300.0, 100.0, glm::sqrt(dx*dx+dy*dy)*2, cloth.getPositions().size(), 0));
-                    cloth.addForce(new SpringForce(2*((x+1)*height+y), 2*(x*height+y+1), 300.0, 100.0, glm::sqrt(dx*dx+dy*dy)*2, cloth.getPositions().size(), 0));   
+                    cloth.addForce(new SpringForce(2*(x*height+y), 2*((x+1)*height+y+1), ks/4, kd/4, glm::sqrt(dx*dx+dy*dy)*2, cloth.getPositions().size(), 0));
+                    cloth.addForce(new SpringForce(2*((x+1)*height+y), 2*(x*height+y+1), ks/4, kd/4, glm::sqrt(dx*dx+dy*dy)*2, cloth.getPositions().size(), 0));   
                 }
             }
         }
@@ -151,20 +156,22 @@ public:
             framesSinceLastFPS = 0;
         }
 
-        //float dt = time - lastTime;
+        float timeDiff = time - lastTime;
+        lastTime = time;
         int count = 0;
         //while (simTime + dt < time && count < 10) {
-        for (int f = 0; f < 1; f++) {
+        for (int f = 0; f < iterationsPerFrame; f++) {
             //for (int f = 0; f < nodes.size(); f++) {
                 //nodes[f] += glm::vec3(1.0f, 0.0f, 0.0f)*float(dt);
             //}
             integrator->step(cloth, dt, integratorMemory);
             normals = calculateNormals(indices, cloth.getPositions());
             cloth.handleCollisions();
-            sphere.center += glm::vec3(-0.0001, 0.0, 0.0);
             simTime += dt;
             count++;
         }
+        
+        sphere.center += glm::vec3(-0.1*timeDiff, 0.0, 0.0);
 
     }
 
@@ -393,6 +400,7 @@ private:
     std::vector<glm::vec3> normals;
     std::vector<glm::vec3> colors;
     double time;
+    double lastTime;
     double dt;
     double simTime;
     MassSpringSystem cloth;
@@ -401,6 +409,7 @@ private:
     SphereCollider sphere;
     float lastTimeFPS;
     int framesSinceLastFPS;
+    int iterationsPerFrame;
 };
 
 /// Main method which creates and calls application

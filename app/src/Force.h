@@ -18,6 +18,7 @@ class ConstantForce : public Force {
 public:
 	ConstantForce(glm::vec3 vec, int numNodes, int positionOffset) : vec(vec), numNodes(numNodes), positionOffset(positionOffset) {}
 	void addAcceleration(const VectorXd &x, const VectorXd &v, VectorXd &a);
+	void addJacobians(const VectorXd &x, const VectorXd &v, MatrixXd &Jx, MatrixXd &Jv);
 private:
 	glm::vec3 vec;
 	int numNodes;
@@ -28,6 +29,7 @@ class AnchorForce : public Force {
 public:
 	AnchorForce(int node, glm::vec3 anchorPoint, double ks, double kd, int numNodes, int positionOffset) : node(node), anchorPoint(anchorPoint), numNodes(numNodes), positionOffset(positionOffset), ks(ks), kd(kd) {}
 	void addForces(const VectorXd &x, const VectorXd &v, VectorXd &f);
+	void addJacobians(const VectorXd &x, const VectorXd &v, MatrixXd &Jx, MatrixXd &Jv);
 private:
 	int node;
 	glm::vec3 anchorPoint;
