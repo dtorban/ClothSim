@@ -38,7 +38,8 @@ private:
 
 class SpringForce : public Force {
 public:
-	SpringForce(int node1, int node2, double ks, double kd, double l0, int numNodes, int positionOffset) : node1(node1), node2(node2), numNodes(numNodes), positionOffset(positionOffset), ks(ks), kd(kd), l0(l0) {}
+	SpringForce(int node1, int node2, double ks, double kd, double l0, int numNodes, int positionOffset)
+	 : node1(node1), node2(node2), numNodes(numNodes), positionOffset(positionOffset), ks(ks), kd(kd), l0(l0) {}
 	void addForces(const VectorXd &x, const VectorXd &v, VectorXd &f);
 private:
 	int node1;
@@ -48,6 +49,24 @@ private:
 	double ks;
 	double kd;
 	double l0;
+};
+
+class AreoForce : public Force {
+public:
+	AreoForce(int node1, int node2, int node3, double density, double cd, glm::vec3 airV, int numNodes, int positionOffset)
+	 : density(density), cd(cd), airV(airV), numNodes(numNodes), positionOffset(positionOffset) {
+		nodes[0] = node1;
+		nodes[1] = node2;
+		nodes[2] = node3;
+	}
+	void addForces(const VectorXd &x, const VectorXd &v, VectorXd &f);
+private:
+	int nodes[3];
+	double density;
+	double cd;
+	int numNodes;
+	int positionOffset;
+	glm::vec3 airV;
 };
 
 #endif

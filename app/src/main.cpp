@@ -55,6 +55,10 @@ public:
             }
         }
 
+        for (int f = 0; f < indices.size(); f+=3) {
+            cloth.addForce(new AreoForce(indices[f], indices[f+1], indices[f+2], 10.0, 500.0, glm::vec3(0.0f, 0.0f, 0.0f), cloth.getPositions().size(), 0));
+        }
+
         int node = 0;
         for (int x = 0; x < width ; x++) {
             for (int y = 0; y < height; y++) {
