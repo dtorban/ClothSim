@@ -17,13 +17,14 @@ using namespace MinVR;
  */
 class MyVRApp : public VRMultithreadedApp {
 public:
-	MyVRApp(int argc, char** argv) : VRMultithreadedApp(argc, argv), model(1.0f), time(0.0f), dt(0.001), simTime(0.0), sphere(glm::vec3(0.5,-0.6,0.0), 0.5) {
+	MyVRApp(int argc, char** argv) : VRMultithreadedApp(argc, argv), model(1.0f), time(0.0f), dt(0.002), simTime(0.0), sphere(glm::vec3(0.5,-0.6,0.0), 0.5) {
         static ExplicitEulerIntegrator explicitEulerIntegrator;
         static ExplicitEulerIntegrator semiImplicitEulerIntegrator(true);
         integrator = &semiImplicitEulerIntegrator;
 
         //glm::mat4 transform = glm::translate(glm::mat4(1), glm::vec3(0,-0.5,0));
-        //model = glm::translate(glm::mat4(1), glm::vec3(0,-0.5,0));
+        model = glm::translate(glm::mat4(1), glm::vec3(0.5,1.5,0));
+        model = glm::scale(model, glm::vec3(1.0f)*2.0f);
         glm::mat4 transform(1.0f);
         transform = glm::rotate(transform, float(-3.141519 / 2), glm::vec3(1.0, 0.0, 0.0));
 
@@ -59,7 +60,7 @@ public:
             for (int y = 0; y < height; y++) {
                 if (x == 0) {
                 //if ((x == 0 && y == 0) || (x == 0 && y == height-1)) {
-                   cloth.addForce(new AnchorForce(node, cloth.getPositions()[node], 500.0, 20.0, cloth.getPositions().size(), 0));
+                   cloth.addForce(new AnchorForce(node, cloth.getPositions()[node], 2000.0, 20.0, cloth.getPositions().size(), 0));
                 }
                 node++;
             }
@@ -68,14 +69,14 @@ public:
         for (int x = 0; x < width-1 ; x++) {
             for (int y = 0; y < height; y++) {
                 // horizontal
-                cloth.addForce(new SpringForce(x*height+y, (x+1)*height+y, 1000.0, 500.0, dx, cloth.getPositions().size(), 0));
+                cloth.addForce(new SpringForce(x*height+y, (x+1)*height+y, 2000.0, 500.0, dx, cloth.getPositions().size(), 0));
             }
         }
 
         for (int x = 0; x < width ; x++) {
             for (int y = 0; y < height-1; y++) {
                 // vertical
-                cloth.addForce(new SpringForce(x*height+y, x*height+y+1, 1000.0, 500.0, dx, cloth.getPositions().size(), 0));
+                cloth.addForce(new SpringForce(x*height+y, x*height+y+1, 2000.0, 500.0, dx, cloth.getPositions().size(), 0));
             }
         }
 
@@ -123,13 +124,13 @@ public:
                 //nodes[f] += glm::vec3(1.0f, 0.0f, 0.0f)*float(dt);
             //}
             integrator->step(cloth, dt, integratorMemory);
+            normals = calculateNormals(indices, cloth.getPositions());
             cloth.handleCollisions();
             sphere.center += glm::vec3(-0.0001, 0.0, 0.0);
             simTime += dt;
             count++;
         }
 
-        normals = calculateNormals(indices, cloth.getPositions());
     }
 
     std::vector<glm::vec3> calculateNormals(const std::vector<unsigned int>& inds, const std::vector<glm::vec3>& positions) {

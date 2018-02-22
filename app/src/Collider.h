@@ -2,6 +2,7 @@
 #define COLLIDER_H_
 
 #include "glm/glm.hpp"
+#include <vector>
 
 struct Collision {
 	glm::vec3 normal;
@@ -23,6 +24,17 @@ public:
 	glm::vec3 center;
 private:
 	float radius;
+};
+
+class SimpleClothCollider : public Collider {
+public:
+	SimpleClothCollider(const std::vector<glm::vec3>& positions, const std::vector<glm::vec3>& normals) : positions(positions), normals(normals) {}
+	virtual ~SimpleClothCollider() {}
+	bool checkCollision(glm::vec3 point, Collision& collision);
+
+private:
+	const std::vector<glm::vec3>& positions;
+	const std::vector<glm::vec3>& normals;
 };
 
 #endif
