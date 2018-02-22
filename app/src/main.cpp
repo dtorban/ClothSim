@@ -7,6 +7,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include "VRMultithreadedApp.h"
+#include <api/VRTrackerEvent.h>
 #include "Force.h"
 using namespace MinVR;
 
@@ -17,7 +18,7 @@ using namespace MinVR;
  */
 class MyVRApp : public VRMultithreadedApp {
 public:
-	MyVRApp(int argc, char** argv) : VRMultithreadedApp(argc, argv), model(1.0f), time(0.0f), dt(0.005), simTime(0.0), sphere(glm::vec3(0.5,-0.6,0.0), 0.5), iterationsPerFrame(10) {
+	MyVRApp(int argc, char** argv) : VRMultithreadedApp(argc, argv), model(1.0f), time(0.0f), dt(0.005), simTime(0.0), sphere(glm::vec3(0.5,-0.6,0.0), 0.15), sphere2(glm::vec3(0.5, -0.6, 0.0), 0.15), iterationsPerFrame(10) {
         static ExplicitEulerIntegrator explicitEulerIntegrator;
         static ExplicitEulerIntegrator semiImplicitEulerIntegrator(true);
         static RungaKutta4Integrator rungaKutta4Integrator;
@@ -26,13 +27,14 @@ public:
         int width = 10;
         int height = 10;
 
-        //integrator = &semiImplicitEulerIntegrator;
-        integrator = &rungaKutta4Integrator; dt = 0.006; width = 20; height = 20;
-        integrator = &implicitEulerIntegrator; dt = 0.01; iterationsPerFrame = 20; width = 10; height = 10;
+		float ks = 1000.0f;
+		float kd = 500.0f;
 
-        float ks = 2000.0f;
-        float kd = 500.0f;
+		integrator = &semiImplicitEulerIntegrator;  dt = 0.001; width = 16; height = 16; iterationsPerFrame = 10;
+		integrator = &rungaKutta4Integrator; dt = 0.006; width = 16; height = 16; iterationsPerFrame = 10; ks = 500; kd = 250;
+		//integrator = &implicitEulerIntegrator; dt = 0.05; iterationsPerFrame = 1; width = 10; height = 10; ks = 500.0f; kd = 0.5f;
 
+        
         //glm::mat4 transform = glm::translate(glm::mat4(1), glm::vec3(0,-0.5,0));
         model = glm::translate(glm::mat4(1), glm::vec3(0.5,1.5,0));
         model = glm::scale(model, glm::vec3(1.0f)*2.0f);
@@ -65,7 +67,7 @@ public:
         }
 
         for (int f = 0; f < indices.size(); f+=3) {
-            cloth.addForce(new AreoForce(indices[f], indices[f+1], indices[f+2], 10.0, 100.0, glm::vec3(0.5f, 0.0f, 0.0f), cloth.getPositions().size(), 0));
+            cloth.addForce(new AreoForce(indices[f], indices[f+1], indices[f+2], 10.0, 100.0, glm::vec3(1.5f, 0.0f, 0.0f), cloth.getPositions().size(), 0));
         }
 
         int node = 0;
@@ -102,8 +104,8 @@ public:
         // Add cross forces
         for (int x = 0; x < width-1 ; x++) {
             for (int y = 0; y < height-1; y++) {
-                cloth.addForce(new SpringForce(x*height+y, (x+1)*height+y+1, ks/2, kd/2, glm::sqrt(dx*dx+dy*dy), cloth.getPositions().size(), 0));
-                cloth.addForce(new SpringForce((x+1)*height+y, x*height+y+1, ks/2, kd/2, glm::sqrt(dx*dx+dy*dy), cloth.getPositions().size(), 0));
+                cloth.addForce(new SpringForce(x*height+y, (x+1)*height+y+1, ks, kd, glm::sqrt(dx*dx+dy*dy), cloth.getPositions().size(), 0));
+                cloth.addForce(new SpringForce((x+1)*height+y, x*height+y+1, ks, kd, glm::sqrt(dx*dx+dy*dy), cloth.getPositions().size(), 0));
                 if (x < (width-1)/2 && y <(height-1)/2) {
                     cloth.addForce(new SpringForce(2*(x*height+y), 2*((x+1)*height+y+1), ks/4, kd/4, glm::sqrt(dx*dx+dy*dy)*2, cloth.getPositions().size(), 0));
                     cloth.addForce(new SpringForce(2*((x+1)*height+y), 2*(x*height+y+1), ks/4, kd/4, glm::sqrt(dx*dx+dy*dy)*2, cloth.getPositions().size(), 0));   
@@ -112,7 +114,8 @@ public:
         }
 
         cloth.addForce(new ConstantForce(glm::vec3(0.0,-0.5,0.0), cloth.getPositions().size(), 0));
-        cloth.addCollider(&sphere);
+		cloth.addCollider(&sphere);
+		cloth.addCollider(&sphere2);
 
         integratorMemory = integrator->allocateMemory(cloth);
     }
@@ -127,6 +130,9 @@ public:
 
         //event.printStructure();
 
+		//std::cout << event.getName() << std::endl;
+		VRString type = (VRString)event.getValue("EventType");
+
 		// Set time since application began
 		if (event.getName() == "FrameStart") {
             time = event.getValue("ElapsedSeconds");
@@ -138,6 +144,21 @@ public:
 				model[f] = modelMatrix.getArray()[f];
 			}*/
 			return;
+		}
+
+		if (type == "TrackerMove") {
+			VRTrackerEvent e(event);
+			//glm::mat4 trackerTransform = glm::make_mat4(e.getTransform());
+			if (e.getName() == "HTC_Controller_Right_Move") {
+				glm::vec3 trackerPos = glm::make_vec3(e.getPos());
+				//std::cout << e.getName() << " " << trackerPos[0] << " " << trackerPos[1] << " " << trackerPos[2] << " " << e.index() << std::endl;
+				sphere.center = glm::inverse(model)*glm::vec4(trackerPos, 1.0f);
+			}
+			if (e.getName() == "HTC_Controller_Left_Move") {
+				glm::vec3 trackerPos = glm::make_vec3(e.getPos());
+				//std::cout << e.getName() << " " << trackerPos[0] << " " << trackerPos[1] << " " << trackerPos[2] << " " << e.index() << std::endl;
+				sphere2.center = glm::inverse(model)*glm::vec4(trackerPos, 1.0f);
+			}
 		}
 
 		// Quit if the escape button is pressed
@@ -171,7 +192,7 @@ public:
             count++;
         }
         
-        sphere.center += glm::vec3(-0.1*timeDiff, 0.0, 0.0);
+        //sphere.center += glm::vec3(-0.1*timeDiff, 0.0, 0.0);
 
     }
 
@@ -406,7 +427,8 @@ private:
     MassSpringSystem cloth;
     Integrator* integrator;
     void* integratorMemory;
-    SphereCollider sphere;
+	SphereCollider sphere;
+	SphereCollider sphere2;
     float lastTimeFPS;
     int framesSinceLastFPS;
     int iterationsPerFrame;
