@@ -16,6 +16,7 @@ public:
     void getInertia(MatrixXd &M) const;
     void getForces(const VectorXd &x, const VectorXd &v, VectorXd &f) const;
     void getAcceleration(const VectorXd &x, const VectorXd &v, VectorXd &a) const;
+    void getJacobians(const VectorXd &x, const VectorXd &v, MatrixXd& jx, MatrixXd& jv) const;
 
     void addNode(double mass, glm::vec3 position);
     void addForce(Force* force);

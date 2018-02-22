@@ -71,7 +71,6 @@ void MassSpringSystem::addCollider(Collider* collider) {
 	colliders.push_back(collider);
 }
 
-#include <iostream>
 void MassSpringSystem::handleCollisions() {
 	Collision collision;
 	for (int f = 0; f < positions.size(); f++) {
@@ -83,5 +82,13 @@ void MassSpringSystem::handleCollisions() {
 				positions[f] = collision.collisionPoint;
 			}
 		}
+	}
+}
+
+void MassSpringSystem::getJacobians(const VectorXd &x, const VectorXd &v, MatrixXd& jx, MatrixXd& jv) const {
+	jx.setZero();
+	jv.setZero();
+	for (int i = 0; i < forces.size(); i++) {
+		forces[i]->addJacobians(x, v, jx, jv);
 	}
 }

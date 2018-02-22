@@ -25,6 +25,41 @@ void SpringForce::addForces(const VectorXd &x, const VectorXd &v, VectorXd &f) {
 	f.segment(nodeSize*node2 + positionOffset, 3) += (ks*(l.norm() - l0) + kd*dl.dot(l)/l.norm())*l/l.norm();
 }
 
+void SpringForce::addJacobians(const VectorXd &x, const VectorXd &v, MatrixXd &Jx, MatrixXd &Jv) {
+	int nodeSize = x.size()/numNodes;
+  	Vector3d l = x.segment(nodeSize*node1 + positionOffset, 3) - x.segment(nodeSize*node2 + positionOffset, 3);
+  	Vector3d ln = l/l.norm();
+  	Matrix3d fx = -ks*(glm::max((1.0-l0/l.norm()),0.0)*(Matrix3d::Identity()-ln*ln.transpose()) + ln*ln.transpose());
+  	Matrix3d vx = -kd*ln*ln.transpose();
+
+  	Jx.block(nodeSize*node1 + positionOffset,nodeSize*node1 + positionOffset, 3,3) += fx;
+  	Jv.block(nodeSize*node1 + positionOffset,nodeSize*node1 + positionOffset, 3,3) += vx;
+
+  	l = x.segment(nodeSize*node2 + positionOffset, 3) - x.segment(nodeSize*node1 + positionOffset, 3);
+  	ln = l/l.norm();
+  	fx = -ks*(glm::max((1.0-l0/l.norm()),0.0)*(Matrix3d::Identity()-ln*ln.transpose()) + ln*ln.transpose());
+  	vx = -kd*ln*ln.transpose();
+
+  	Jx.block(nodeSize*node2 + positionOffset,nodeSize*node2 + positionOffset, 3,3) += fx;
+  	Jv.block(nodeSize*node2 + positionOffset,nodeSize*node2 + positionOffset, 3,3) += vx;
+  	
+ /* Vector2d l = p0->x - p1->x;
+  Vector2d ln = l/l.norm();
+  Matrix2d fx = -ks*(max((1.0-l0/l.norm()),0.0)*(Matrix2d::Identity()-ln*ln.transpose()) + ln*ln.transpose());
+  Matrix2d vx = -kd*ln*ln.transpose();
+
+  Jx.block(2*p0->i,2*p0->i, 2,2) += fx;
+  Jv.block(2*p0->i,2*p0->i, 2,2) += vx;
+
+  l = p1->x - p0->x;
+  ln = l/l.norm();
+  fx = -ks*(max((1.0-l0/l.norm()),0.0)*(Matrix2d::Identity()-ln*ln.transpose()) + ln*ln.transpose());
+  vx = -kd*ln*ln.transpose();
+
+  Jx.block(2*p1->i,2*p1->i, 2,2) += fx;
+  Jv.block(2*p1->i,2*p1->i, 2,2) += vx;*/
+}
+
 void AreoForce::addForces(const VectorXd &x, const VectorXd &v, VectorXd &f) {
 	int nodeSize = f.size()/numNodes;
 	Vector3d r1 = x.segment(nodeSize*nodes[0] + positionOffset, 3);

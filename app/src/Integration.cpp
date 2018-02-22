@@ -1,4 +1,6 @@
 #include "Integration.h"
+#include <Eigen/Sparse>
+#include <Eigen/IterativeLinearSolvers>
 
 struct ExplicitEulerMemory {
     ExplicitEulerMemory(int n) :
@@ -98,3 +100,68 @@ void RungaKutta4Integrator::freeMemory(void* memory) {
     delete static_cast<RungaKutta4Memory*>(memory);
 }
 
+
+
+VectorXd solve(const MatrixXd &A, const VectorXd &b) {
+    SparseMatrix<double> spA = A.sparseView();
+    ConjugateGradient< SparseMatrix<double> > solver;
+    return solver.compute(spA).solve(b);
+}
+
+struct ImplicitEulerMemory {
+    ImplicitEulerMemory(int n) :
+        x0(n), v0(n), f0(n), a0(n), x1(n), v1(n), dv(n), b(n), M(n,n), jx(n,n), jv(n,n), A(n,n) {}
+    VectorXd x0, v0, f0, a0, x1, v1, dv, b;
+    MatrixXd M, jx, jv, A;
+};
+
+void ImplicitEulerIntegrator::step(PhysicalSystem& system, double dt, void* memory) {
+    ImplicitEulerMemory& mem = *static_cast<ImplicitEulerMemory*>(memory);
+    int n = system.getDOFs();
+    system.getState(mem.x0, mem.v0);
+    system.getInertia(mem.M);
+    system.getForces(mem.x0, mem.v0, mem.f0);
+    system.getAcceleration(mem.x0, mem.v0, mem.a0);
+    for (int i = 0; i < n; i++) {
+        mem.f0(i) += mem.a0(i)*mem.M(i,i);
+    }
+
+    system.getJacobians(mem.x0, mem.v0, mem.jx, mem.jv);
+    mem.A = mem.M - mem.jx*(dt*dt) - mem.jv*dt;
+    mem.b = (mem.f0 + mem.jx*mem.v0*dt)*dt;
+
+    mem.dv = solve(mem.A,mem.b);
+
+    mem.v1 = mem.v0 + mem.dv;
+    mem.x1 = mem.x0 + mem.v1*dt;   
+
+    system.setState(mem.x1, mem.v1);
+
+    /*
+    int n = system->getDOFs();
+    VectorXd x0(n), v0(n);
+    system->getState(x0, v0);
+    MatrixXd M(n,n);
+    system->getInertia(M);
+    VectorXd f0(n);
+    system->getForces(f0);
+    MatrixXd jx(n,n), jv(n,n);
+    system->getJacobians(jx, jv);
+    MatrixXd A(n,n);
+    A = M - jx*(dt*dt) - jv*dt;
+    VectorXd b(n);
+    b = (f0 + jx*v0*dt)*dt;
+    VectorXd dv = solve(A,b);
+    VectorXd v1 = v0 + dv;
+    VectorXd x1 = x0 + v1*dt;
+    system->setState(x1, v1);
+    */
+}
+
+void* ImplicitEulerIntegrator::allocateMemory(PhysicalSystem& system) {
+    return new ImplicitEulerMemory(system.getDOFs());
+}
+
+void ImplicitEulerIntegrator::freeMemory(void* memory) {
+    delete static_cast<ImplicitEulerMemory*>(memory);
+}

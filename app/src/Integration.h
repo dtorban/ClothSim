@@ -13,6 +13,7 @@ public:
     virtual void getInertia(MatrixXd &M) const = 0;
     virtual void getForces(const VectorXd &x, const VectorXd &v, VectorXd &f) const = 0;
     virtual void getAcceleration(const VectorXd &x, const VectorXd &v, VectorXd &a) const = 0;
+    virtual void getJacobians(const VectorXd &x, const VectorXd &v, MatrixXd& jx, MatrixXd& jv) const = 0;
 };
 
 class Integrator {
@@ -39,6 +40,15 @@ class RungaKutta4Integrator : public Integrator {
 public:
 	RungaKutta4Integrator() {}	
 	virtual ~RungaKutta4Integrator() {}	
+	void* allocateMemory(PhysicalSystem& system);
+	void freeMemory(void* memory);
+	void step(PhysicalSystem& system, double dt, void* memory);
+};
+
+class ImplicitEulerIntegrator : public Integrator {
+public:
+	ImplicitEulerIntegrator() {}	
+	virtual ~ImplicitEulerIntegrator() {}	
 	void* allocateMemory(PhysicalSystem& system);
 	void freeMemory(void* memory);
 	void step(PhysicalSystem& system, double dt, void* memory);

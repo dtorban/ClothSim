@@ -11,6 +11,7 @@ public:
 	virtual ~Force() {}
 	virtual void addForces(const VectorXd &x, const VectorXd &v, VectorXd &f) {}
 	virtual void addAcceleration(const VectorXd &x, const VectorXd &v, VectorXd &a) {}
+	virtual void addJacobians(const VectorXd &x, const VectorXd &v, MatrixXd &Jx, MatrixXd &Jv) {}
 };
 
 class ConstantForce : public Force {
@@ -41,6 +42,7 @@ public:
 	SpringForce(int node1, int node2, double ks, double kd, double l0, int numNodes, int positionOffset)
 	 : node1(node1), node2(node2), numNodes(numNodes), positionOffset(positionOffset), ks(ks), kd(kd), l0(l0) {}
 	void addForces(const VectorXd &x, const VectorXd &v, VectorXd &f);
+	void addJacobians(const VectorXd &x, const VectorXd &v, MatrixXd &Jx, MatrixXd &Jv);
 private:
 	int node1;
 	int node2;

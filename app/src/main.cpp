@@ -21,8 +21,10 @@ public:
         static ExplicitEulerIntegrator explicitEulerIntegrator;
         static ExplicitEulerIntegrator semiImplicitEulerIntegrator(true);
         static RungaKutta4Integrator rungaKutta4Integrator;
+        static ImplicitEulerIntegrator implicitEulerIntegrator;
         integrator = &semiImplicitEulerIntegrator;
         integrator = &rungaKutta4Integrator;
+        integrator = &implicitEulerIntegrator; dt = 0.1;
 
         //glm::mat4 transform = glm::translate(glm::mat4(1), glm::vec3(0,-0.5,0));
         model = glm::translate(glm::mat4(1), glm::vec3(0.5,1.5,0));
@@ -152,7 +154,7 @@ public:
         //float dt = time - lastTime;
         int count = 0;
         //while (simTime + dt < time && count < 10) {
-        for (int f = 0; f < 10; f++) {
+        for (int f = 0; f < 1; f++) {
             //for (int f = 0; f < nodes.size(); f++) {
                 //nodes[f] += glm::vec3(1.0f, 0.0f, 0.0f)*float(dt);
             //}
