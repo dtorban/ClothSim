@@ -56,7 +56,7 @@ public:
         }
 
         for (int f = 0; f < indices.size(); f+=3) {
-            cloth.addForce(new AreoForce(indices[f], indices[f+1], indices[f+2], 10.0, 500.0, glm::vec3(0.0f, 0.0f, 0.0f), cloth.getPositions().size(), 0));
+            cloth.addForce(new AreoForce(indices[f], indices[f+1], indices[f+2], 10.0, 200.0, glm::vec3(1.0f, 0.0f, 0.0f), cloth.getPositions().size(), 0));
         }
 
         int node = 0;
@@ -81,6 +81,14 @@ public:
             for (int y = 0; y < height-1; y++) {
                 // vertical
                 cloth.addForce(new SpringForce(x*height+y, x*height+y+1, 2000.0, 500.0, dx, cloth.getPositions().size(), 0));
+            }
+        }
+
+        // Add cross forces
+        for (int x = 0; x < width-1 ; x++) {
+            for (int y = 0; y < height-1; y++) {
+                cloth.addForce(new SpringForce(x*height+y, (x+1)*height+y+1, 500.0, 200.0, glm::sqrt(dx*dx+dy*dy), cloth.getPositions().size(), 0));
+                cloth.addForce(new SpringForce((x+1)*height+y, x*height+y+1, 500.0, 200.0, glm::sqrt(dx*dx+dy*dy), cloth.getPositions().size(), 0));
             }
         }
 
