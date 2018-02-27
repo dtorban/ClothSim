@@ -115,6 +115,8 @@ struct ImplicitEulerMemory {
     MatrixXd M, jx, jv, A;
 };
 
+#include <iostream>
+
 void ImplicitEulerIntegrator::step(PhysicalSystem& system, double dt, void* memory) {
     ImplicitEulerMemory& mem = *static_cast<ImplicitEulerMemory*>(memory);
     int n = system.getDOFs();
@@ -127,13 +129,29 @@ void ImplicitEulerIntegrator::step(PhysicalSystem& system, double dt, void* memo
     }
 
     system.getJacobians(mem.x0, mem.v0, mem.jx, mem.jv);
+
     mem.A = mem.M - mem.jx*(dt*dt) - mem.jv*dt;
     mem.b = (mem.f0 + mem.jx*mem.v0*dt)*dt;
+
+    /*for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                std::cout << mem.A(3*50+i,3*50+j) << " ";
+            }
+            std::cout  << std::endl;
+        }
+        std::cout << std::endl;*/
 
     mem.dv = solve(mem.A,mem.b);
 
     mem.v1 = mem.v0 + mem.dv;
-    mem.x1 = mem.x0 + mem.v1*dt;   
+    //std::cout << "before: " << mem.v1[0] << " " << mem.v1[1] << " " << mem.v1[2] << std::endl;
+    //mem.v1 += mem.a0*dt;
+    //std::cout << "after: " << mem.v1[0] << " " << mem.v1[1] << " " << mem.v1[2] << std::endl;
+
+    mem.x1 = mem.x0 + mem.v1*dt;
+
+    std::cout << "before: " << mem.x0[0] << " " << mem.x0[1] << " " << mem.x0[2] << std::endl;
+    std::cout << "after: " << mem.x1[0] << " " << mem.x1[1] << " " << mem.x1[2] << std::endl;
 
     system.setState(mem.x1, mem.v1);
 

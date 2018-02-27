@@ -41,8 +41,8 @@ private:
 
 class SpringForce : public Force {
 public:
-	SpringForce(int node1, int node2, double ks, double kd, double l0, int numNodes, int positionOffset)
-	 : node1(node1), node2(node2), numNodes(numNodes), positionOffset(positionOffset), ks(ks), kd(kd), l0(l0) {}
+	SpringForce(int node1, int node2, double ks, double kd, double l0, int numNodes, int positionOffset, bool record = false)
+	 : node1(node1), node2(node2), numNodes(numNodes), positionOffset(positionOffset), ks(ks), kd(kd), l0(l0), record(record) {}
 	void addForces(const VectorXd &x, const VectorXd &v, VectorXd &f);
 	void addJacobians(const VectorXd &x, const VectorXd &v, MatrixXd &Jx, MatrixXd &Jv);
 private:
@@ -53,6 +53,7 @@ private:
 	double ks;
 	double kd;
 	double l0;
+	bool record;
 };
 
 class AreoForce : public Force {

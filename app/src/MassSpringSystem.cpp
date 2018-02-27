@@ -33,6 +33,9 @@ void MassSpringSystem::setState(const VectorXd &x, const VectorXd &v) {
 		velocities[f][0] = v[f*3];
 		velocities[f][1] = v[f*3+1];
 		velocities[f][2] = v[f*3+2];
+		points[f][0] = x[f*3];
+		points[f][1] = x[f*3+1];
+		points[f][2] = x[f*3+2];
 	}
 }
 
@@ -60,6 +63,7 @@ void MassSpringSystem::getAcceleration(const VectorXd &x, const VectorXd &v, Vec
 void MassSpringSystem::addNode(double mass, glm::vec3 position) {
 	masses.push_back(mass);
 	positions.push_back(position);
+	points.push_back(position);
 	velocities.push_back(glm::vec3(0.0f, 0.0f, 0.0f));
 }
 
@@ -75,9 +79,10 @@ void MassSpringSystem::handleCollisions() {
 	Collision collision;
 	for (int f = 0; f < positions.size(); f++) {
 		for (int i = 0; i < colliders.size(); i++) {
-			if(colliders[i]->checkCollision(positions[f], collision)) {
+			if(colliders[i]->checkCollision(points[f], collision)) {
 				//std::cout << "Collision" << std::endl;
-				glm::vec3 bounce = glm::dot(velocities[f], collision.normal)*collision.normal;
+				glm::vec3 vel = velocities[f];
+				glm::vec3 bounce = glm::dot(vel, collision.normal)*collision.normal;
 				velocities[f] -= 1.5f*bounce;
 				positions[f] = collision.collisionPoint;
 			}

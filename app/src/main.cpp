@@ -18,7 +18,7 @@ using namespace MinVR;
  */
 class MyVRApp : public VRMultithreadedApp {
 public:
-	MyVRApp(int argc, char** argv) : VRMultithreadedApp(argc, argv), model(1.0f), time(0.0f), dt(0.005), simTime(0.0), sphere(glm::vec3(0.5,-0.6,0.0), 0.50), sphere2(glm::vec3(0.5, -0.6, 0.0), 0.15), iterationsPerFrame(10) {
+	MyVRApp(int argc, char** argv) : VRMultithreadedApp(argc, argv), model(1.0f), time(0.0f), dt(0.005), simTime(0.0), sphere(glm::vec3(0.5,-10.6,0.0), 0.0), sphere2(glm::vec3(0.5, -10.6, 0.0), 0.15), iterationsPerFrame(10) {
         static ExplicitEulerIntegrator explicitEulerIntegrator;
         static ExplicitEulerIntegrator semiImplicitEulerIntegrator(true);
         static RungaKutta4Integrator rungaKutta4Integrator;
@@ -32,9 +32,9 @@ public:
 		float totalMass = 1.0f;
 
         integrator = &explicitEulerIntegrator;  dt = 0.0005; width = 30; height = 30; iterationsPerFrame = 5; ks = 500.0f; kd = 1.0f; totalMass = 20.0f;
-		//integrator = &semiImplicitEulerIntegrator;  dt = 0.001; width = 30; height = 30; iterationsPerFrame = 5; ks = 8000.0f; kd = 1.0f; totalMass = 20.0f;
-		//integrator = &rungaKutta4Integrator; dt = 0.001; width = 30; height = 30; iterationsPerFrame = 5; ks = 10000.0f; kd = 3.0f; totalMass = 20.0f;
-		//integrator = &implicitEulerIntegrator; dt = 0.01; width =30; height = 30; iterationsPerFrame = 1; ks = 100.0f; kd = 2.0f; totalMass = 20.0f;
+		integrator = &semiImplicitEulerIntegrator;  dt = 0.001; width = 30; height = 30; iterationsPerFrame = 5; ks = 8000.0f; kd = 1.0f; totalMass = 20.0f;
+		integrator = &rungaKutta4Integrator; dt = 0.001; width = 30; height = 30; iterationsPerFrame = 5; ks = 10000.0f; kd = 3.0f; totalMass = 20.0f;
+		integrator = &implicitEulerIntegrator; dt = 0.01; width =25; height = 25; iterationsPerFrame = 1; ks = 100.0f; kd = 0.0f; totalMass = 1.0f;
         
         //glm::mat4 transform = glm::translate(glm::mat4(1), glm::vec3(0,-0.5,0));
         model = glm::translate(glm::mat4(1), glm::vec3(0.5,1.5,0));
@@ -68,16 +68,18 @@ public:
         }
 
         for (int f = 0; f < indices.size(); f+=3) {
-            cloth.addForce(new AreoForce(indices[f], indices[f+1], indices[f+2], 1.0, 10.0, glm::vec3(5.5f, 0.0f, 5.0f)*1.0f, cloth.getPositions().size(), 0));
+           // cloth.addForce(new AreoForce(indices[f], indices[f+1], indices[f+2], 1.0, 10.0, glm::vec3(5.5f, 0.0f, 5.0f)*1.0f, cloth.getPositions().size(), 0));
         }
 
         int node = 0;
         for (int x = 0; x < width ; x++) {
             for (int y = 0; y < height; y++) {
-                if (x == 0) {
+                //if (x == 2 && y == 0) {
+                //if (x == 0) {
                 //if ((x == 0 && y == 0) || (x == 0 && y == height-1)) {
-                   cloth.addForce(new AnchorForce(node, cloth.getPositions()[node], ks, 0.1, cloth.getPositions().size(), 0));
-                }
+                   //cloth.addForce(new AnchorForce(node, cloth.getPositions()[node], ks, kd, cloth.getPositions().size(), 0));
+                //}
+
                 node++;
             }
         }
@@ -85,9 +87,9 @@ public:
         for (int x = 0; x < width-1 ; x++) {
             for (int y = 0; y < height; y++) {
                 // horizontal
-                cloth.addForce(new SpringForce(x*height+y, (x+1)*height+y, ks, kd, dx, cloth.getPositions().size(), 0));
+                cloth.addForce(new SpringForce(x*height+y, (x+1)*height+y, ks, kd, dx, cloth.getPositions().size(), 0, x == 2 && y == 0));
                 if (x < (width-1)/2 && y <(height-1)/2) {
-                    cloth.addForce(new SpringForce((2*x)*height+(2*y), 2*(x+1)*height+2*y, ks/2, kd/2, dx*2, cloth.getPositions().size(), 0));
+                    //cloth.addForce(new SpringForce((2*x)*height+(2*y), 2*(x+1)*height+2*y, ks/2, kd/2, dx*2, cloth.getPositions().size(), 0));
                 }
             }
         }
@@ -97,7 +99,7 @@ public:
                 // vertical
                 cloth.addForce(new SpringForce(x*height+y, x*height+y+1, ks, kd, dy, cloth.getPositions().size(), 0));
                 if (x < (width-1)/2 && y <(height-1)/2) {
-                   cloth.addForce(new SpringForce(2*x*height+2*y, 2*x*height+2*(y+1), ks/2, kd/2, dy*2, cloth.getPositions().size(), 0));   
+                   //cloth.addForce(new SpringForce(2*x*height+2*y, 2*x*height+2*(y+1), ks/2, kd/2, dy*2, cloth.getPositions().size(), 0));   
                 }
             }
         }
@@ -105,18 +107,18 @@ public:
         // Add cross forces
         for (int x = 0; x < width-1 ; x++) {
             for (int y = 0; y < height-1; y++) {
-                cloth.addForce(new SpringForce(x*height+y, (x+1)*height+y+1, ks, kd, glm::sqrt(dx*dx+dy*dy), cloth.getPositions().size(), 0));
-                cloth.addForce(new SpringForce((x+1)*height+y, x*height+y+1, ks, kd, glm::sqrt(dx*dx+dy*dy), cloth.getPositions().size(), 0));
+                //cloth.addForce(new SpringForce(x*height+y, (x+1)*height+y+1, ks, kd, glm::sqrt(dx*dx+dy*dy), cloth.getPositions().size(), 0));
+                //cloth.addForce(new SpringForce((x+1)*height+y, x*height+y+1, ks, kd, glm::sqrt(dx*dx+dy*dy), cloth.getPositions().size(), 0));
                 if (x < (width-1)/2 && y <(height-1)/2) {
-                    cloth.addForce(new SpringForce(2*(x*height+y), 2*((x+1)*height+y+1), ks/2, kd/2, glm::sqrt(dx*dx+dy*dy)*2, cloth.getPositions().size(), 0));
-                    cloth.addForce(new SpringForce(2*((x+1)*height+y), 2*(x*height+y+1), ks/2, kd/2, glm::sqrt(dx*dx+dy*dy)*2, cloth.getPositions().size(), 0));   
+                    //cloth.addForce(new SpringForce(2*(x*height+y), 2*((x+1)*height+y+1), ks/2, kd/2, glm::sqrt(dx*dx+dy*dy)*2, cloth.getPositions().size(), 0));
+                    //cloth.addForce(new SpringForce(2*((x+1)*height+y), 2*(x*height+y+1), ks/2, kd/2, glm::sqrt(dx*dx+dy*dy)*2, cloth.getPositions().size(), 0));   
                 }
             }
         }
 
-        cloth.addForce(new ConstantForce(glm::vec3(0.0,-10.0,0.0), cloth.getPositions().size(), 0));
-		cloth.addCollider(&sphere);
-		cloth.addCollider(&sphere2);
+        cloth.addForce(new ConstantForce(glm::vec3(10.0,0.0,0.0), cloth.getPositions().size(), 0));
+		//cloth.addCollider(&sphere);
+		//cloth.addCollider(&sphere2);
 
         integratorMemory = integrator->allocateMemory(cloth);
     }
@@ -186,6 +188,7 @@ public:
             //for (int f = 0; f < nodes.size(); f++) {
                 //nodes[f] += glm::vec3(1.0f, 0.0f, 0.0f)*float(dt);
             //}
+            //std::cout << simTime << std::endl;
             integrator->step(cloth, dt, integratorMemory);
             normals = calculateNormals(indices, cloth.getPositions());
             cloth.handleCollisions();

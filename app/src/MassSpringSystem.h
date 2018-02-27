@@ -23,12 +23,13 @@ public:
     void addCollider(Collider* collider);
     void handleCollisions();
 
-    const std::vector<glm::vec3>& getPositions() const { return positions; }
+    const std::vector<glm::vec3>& getPositions() const { return points; }
 
 private:
 	std::vector<double> masses;
-	std::vector<glm::vec3> positions;
-	std::vector<glm::vec3> velocities;
+	std::vector<glm::dvec3> positions;
+	std::vector<glm::dvec3> velocities;
+    std::vector<glm::vec3> points;
 	std::vector<Force*> forces;
 	std::vector<Collider*> colliders;
 };
