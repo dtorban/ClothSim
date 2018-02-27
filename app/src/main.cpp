@@ -18,7 +18,7 @@ using namespace MinVR;
  */
 class MyVRApp : public VRMultithreadedApp {
 public:
-	MyVRApp(int argc, char** argv) : VRMultithreadedApp(argc, argv), model(1.0f), time(0.0f), dt(0.005), simTime(0.0), sphere(glm::vec3(0.5,-0.6,0.0), 0.15), sphere2(glm::vec3(0.5, -0.6, 0.0), 0.15), iterationsPerFrame(10) {
+	MyVRApp(int argc, char** argv) : VRMultithreadedApp(argc, argv), model(1.0f), time(0.0f), dt(0.005), simTime(0.0), sphere(glm::vec3(0.5,-0.6,0.0), 0.50), sphere2(glm::vec3(0.5, -0.6, 0.0), 0.15), iterationsPerFrame(10) {
         static ExplicitEulerIntegrator explicitEulerIntegrator;
         static ExplicitEulerIntegrator semiImplicitEulerIntegrator(true);
         static RungaKutta4Integrator rungaKutta4Integrator;
@@ -31,9 +31,9 @@ public:
 		float kd = 0.1;
 		float totalMass = 1.0f;
 
-		integrator = &semiImplicitEulerIntegrator;  dt = 0.001; width = 20; height = 20; iterationsPerFrame = 10; ks = 200.0f; kd = 1.0f; totalMass = 10.0f;
-		integrator = &rungaKutta4Integrator; dt = 0.003; width = 20; height = 20; iterationsPerFrame = 5; ks = 2000.0f; kd = 1.1f; totalMass = 20.0f;
-		//integrator = &implicitEulerIntegrator; dt = 0.05; iterationsPerFrame = 1; width = 20; height = 20; ks = 100.0f; kd = 0.1f; totalMass = 10.0f;
+		integrator = &semiImplicitEulerIntegrator;  dt = 0.001; width = 30; height = 30; iterationsPerFrame = 5; ks = 8000.0f; kd = 2.0f; totalMass = 20.0f;
+		integrator = &rungaKutta4Integrator; dt = 0.001; width = 30; height = 30; iterationsPerFrame = 5; ks = 10000.0f; kd = 3.0f; totalMass = 20.0f;
+		//integrator = &implicitEulerIntegrator; dt = 0.01; width =30; height = 30; iterationsPerFrame = 1; ks = 100.0f; kd = 2.0f; totalMass = 20.0f;
         
         //glm::mat4 transform = glm::translate(glm::mat4(1), glm::vec3(0,-0.5,0));
         model = glm::translate(glm::mat4(1), glm::vec3(0.5,1.5,0));
@@ -67,7 +67,7 @@ public:
         }
 
         for (int f = 0; f < indices.size(); f+=3) {
-            cloth.addForce(new AreoForce(indices[f], indices[f+1], indices[f+2], 1.0, 10.0, glm::vec3(10.5f, 0.0f, 5.0f)*1.0f, cloth.getPositions().size(), 0));
+            cloth.addForce(new AreoForce(indices[f], indices[f+1], indices[f+2], 1.0, 10.0, glm::vec3(5.5f, 0.0f, 5.0f)*1.0f, cloth.getPositions().size(), 0));
         }
 
         int node = 0;
