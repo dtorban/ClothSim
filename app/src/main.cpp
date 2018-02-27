@@ -31,8 +31,9 @@ public:
 		float kd = 0.1;
 		float totalMass = 1.0f;
 
-		integrator = &semiImplicitEulerIntegrator;  dt = 0.001; width = 30; height = 30; iterationsPerFrame = 5; ks = 8000.0f; kd = 2.0f; totalMass = 20.0f;
-		integrator = &rungaKutta4Integrator; dt = 0.001; width = 30; height = 30; iterationsPerFrame = 5; ks = 10000.0f; kd = 3.0f; totalMass = 20.0f;
+        integrator = &explicitEulerIntegrator;  dt = 0.0005; width = 30; height = 30; iterationsPerFrame = 5; ks = 500.0f; kd = 1.0f; totalMass = 20.0f;
+		//integrator = &semiImplicitEulerIntegrator;  dt = 0.001; width = 30; height = 30; iterationsPerFrame = 5; ks = 8000.0f; kd = 1.0f; totalMass = 20.0f;
+		//integrator = &rungaKutta4Integrator; dt = 0.001; width = 30; height = 30; iterationsPerFrame = 5; ks = 10000.0f; kd = 3.0f; totalMass = 20.0f;
 		//integrator = &implicitEulerIntegrator; dt = 0.01; width =30; height = 30; iterationsPerFrame = 1; ks = 100.0f; kd = 2.0f; totalMass = 20.0f;
         
         //glm::mat4 transform = glm::translate(glm::mat4(1), glm::vec3(0,-0.5,0));
@@ -75,7 +76,7 @@ public:
             for (int y = 0; y < height; y++) {
                 if (x == 0) {
                 //if ((x == 0 && y == 0) || (x == 0 && y == height-1)) {
-                   cloth.addForce(new AnchorForce(node, cloth.getPositions()[node], 1000, 0.1, cloth.getPositions().size(), 0));
+                   cloth.addForce(new AnchorForce(node, cloth.getPositions()[node], ks, 0.1, cloth.getPositions().size(), 0));
                 }
                 node++;
             }

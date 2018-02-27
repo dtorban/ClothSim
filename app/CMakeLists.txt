@@ -10,6 +10,7 @@ set (SOURCEFILES
   src/MassSpringSystem.cpp
   src/Force.cpp
   src/Collider.cpp
+  src/ClothSimulation.cpp
 )
 
 set (HEADERFILES
