@@ -24,18 +24,21 @@ public:
         static RungaKutta4Integrator rungaKutta4Integrator;
         static ImplicitEulerIntegrator implicitEulerIntegrator;
 
-        int width = 10;
-        int height = 10;
+        int width = 20;
+        int height = 20;
 
-		float ks = 200.0f;
-		float kd = 0.1;
+		ks = 200.0f;
+		kd = 0.1;
 		float totalMass = 1.0f;
 
-        integrator = &explicitEulerIntegrator;  dt = 0.0005; width = 30; height = 30; iterationsPerFrame = 5; ks = 500.0f; kd = 1.0f; totalMass = 20.0f;
-		integrator = &semiImplicitEulerIntegrator;  dt = 0.001; width = 30; height = 30; iterationsPerFrame = 5; ks = 8000.0f; kd = 1.0f; totalMass = 20.0f;
-		integrator = &rungaKutta4Integrator; dt = 0.001; width = 30; height = 30; iterationsPerFrame = 5; ks = 10000.0f; kd = 3.0f; totalMass = 20.0f;
-		integrator = &implicitEulerIntegrator; dt = 0.01; width =20; height = 20; iterationsPerFrame = 1; ks = 10000.0f; kd = 50.0f; totalMass = 20.0f;
+        integrator = &explicitEulerIntegrator;  dt = 0.0005; iterationsPerFrame = 2; ks = 500.0f; kd = 1.0f; totalMass = 20.0f;
+		integrator = &semiImplicitEulerIntegrator;  dt = 0.001; iterationsPerFrame = 10; ks = 8000.0f; kd = 3.0f; totalMass = 20.0f;
+		integrator = &rungaKutta4Integrator; dt = 0.001; iterationsPerFrame = 10; ks = 15000.0f; kd = 3.0f; totalMass = 20.0f;
+		integrator = &implicitEulerIntegrator; dt = 0.01; iterationsPerFrame = 1; ks = 15000.0f; kd = 3.0f; totalMass = 20.0f;
         
+        bendingKs = ks/2.0;
+        bendingKd = kd/2.0;
+
         //glm::mat4 transform = glm::translate(glm::mat4(1), glm::vec3(0,-0.5,0));
         model = glm::translate(glm::mat4(1), glm::vec3(0.5,1.5,0));
         model = glm::scale(model, glm::vec3(1.0f)*2.0f);
@@ -89,7 +92,7 @@ public:
                 // horizontal
                 cloth.addForce(new SpringForce(x*height+y, (x+1)*height+y, ks, kd, dx, cloth.getPositions().size(), 0, x == 2 && y == 0));
                 if (x < (width-1)/2 && y <(height-1)/2) {
-                    cloth.addForce(new SpringForce((2*x)*height+(2*y), 2*(x+1)*height+2*y, ks/2, kd/2, dx*2, cloth.getPositions().size(), 0));
+                    cloth.addForce(new SpringForce((2*x)*height+(2*y), 2*(x+1)*height+2*y, bendingKs, bendingKd, dx*2, cloth.getPositions().size(), 0));
                 }
             }
         }
@@ -99,7 +102,7 @@ public:
                 // vertical
                 cloth.addForce(new SpringForce(x*height+y, x*height+y+1, ks, kd, dy, cloth.getPositions().size(), 0));
                 if (x < (width-1)/2 && y <(height-1)/2) {
-                   cloth.addForce(new SpringForce(2*x*height+2*y, 2*x*height+2*(y+1), ks/2, kd/2, dy*2, cloth.getPositions().size(), 0));   
+                   cloth.addForce(new SpringForce(2*x*height+2*y, 2*x*height+2*(y+1), bendingKs, bendingKd, dy*2, cloth.getPositions().size(), 0));   
                 }
             }
         }
@@ -110,8 +113,8 @@ public:
                 cloth.addForce(new SpringForce(x*height+y, (x+1)*height+y+1, ks, kd, glm::sqrt(dx*dx+dy*dy), cloth.getPositions().size(), 0));
                 cloth.addForce(new SpringForce((x+1)*height+y, x*height+y+1, ks, kd, glm::sqrt(dx*dx+dy*dy), cloth.getPositions().size(), 0));
                 if (x < (width-1)/2 && y <(height-1)/2) {
-                    cloth.addForce(new SpringForce(2*(x*height+y), 2*((x+1)*height+y+1), ks/2, kd/2, glm::sqrt(dx*dx+dy*dy)*2, cloth.getPositions().size(), 0));
-                    cloth.addForce(new SpringForce(2*((x+1)*height+y), 2*(x*height+y+1), ks/2, kd/2, glm::sqrt(dx*dx+dy*dy)*2, cloth.getPositions().size(), 0));   
+                    cloth.addForce(new SpringForce(2*(x*height+y), 2*((x+1)*height+y+1), bendingKs, bendingKd, glm::sqrt(dx*dx+dy*dy)*2, cloth.getPositions().size(), 0));
+                    cloth.addForce(new SpringForce(2*((x+1)*height+y), 2*(x*height+y+1), bendingKs, bendingKd, glm::sqrt(dx*dx+dy*dy)*2, cloth.getPositions().size(), 0));   
                 }
             }
         }
@@ -133,7 +136,7 @@ public:
 
         //event.printStructure();
 
-		//std::cout << event.getName() << std::endl;
+		std::cout << event.getName() << std::endl;
 		VRString type = (VRString)event.getValue("EventType");
 
 		// Set time since application began
@@ -168,6 +171,10 @@ public:
 		if (event.getName() == "KbdEsc_Down") {
 			running = false;
 		}
+
+        if (event.getName() == "KbdP_Down") {
+            ks+=1000;
+        }
 	}
 
     void update() {
@@ -436,6 +443,8 @@ private:
     float lastTimeFPS;
     int framesSinceLastFPS;
     int iterationsPerFrame;
+    double ks, kd;
+    double bendingKs, bendingKd;
 };
 
 /// Main method which creates and calls application

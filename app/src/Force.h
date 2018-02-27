@@ -27,7 +27,7 @@ private:
 
 class AnchorForce : public Force {
 public:
-	AnchorForce(int node, glm::vec3 anchorPoint, double ks, double kd, int numNodes, int positionOffset) : node(node), anchorPoint(anchorPoint), numNodes(numNodes), positionOffset(positionOffset), ks(ks), kd(kd) {}
+	AnchorForce(int node, glm::vec3 anchorPoint, double& ks, double& kd, int numNodes, int positionOffset) : node(node), anchorPoint(anchorPoint), numNodes(numNodes), positionOffset(positionOffset), ks(ks), kd(kd) {}
 	void addForces(const VectorXd &x, const VectorXd &v, VectorXd &f);
 	void addJacobians(const VectorXd &x, const VectorXd &v, MatrixXd &Jx, MatrixXd &Jv);
 private:
@@ -35,13 +35,13 @@ private:
 	glm::vec3 anchorPoint;
 	int numNodes;
 	int positionOffset;
-	double ks;
-	double kd;
+	double& ks;
+	double& kd;
 };
 
 class SpringForce : public Force {
 public:
-	SpringForce(int node1, int node2, double ks, double kd, double l0, int numNodes, int positionOffset, bool record = false)
+	SpringForce(int node1, int node2, double& ks, double& kd, double l0, int numNodes, int positionOffset, bool record = false)
 	 : node1(node1), node2(node2), numNodes(numNodes), positionOffset(positionOffset), ks(ks), kd(kd), l0(l0), record(record) {}
 	void addForces(const VectorXd &x, const VectorXd &v, VectorXd &f);
 	void addJacobians(const VectorXd &x, const VectorXd &v, MatrixXd &Jx, MatrixXd &Jv);
@@ -50,8 +50,8 @@ private:
 	int node2;
 	int numNodes;
 	int positionOffset;
-	double ks;
-	double kd;
+	double& ks;
+	double& kd;
 	double l0;
 	bool record;
 };
