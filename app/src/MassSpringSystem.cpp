@@ -83,7 +83,7 @@ void MassSpringSystem::handleCollisions() {
 				//std::cout << "Collision" << std::endl;
 				glm::vec3 vel = velocities[f];
 				glm::vec3 bounce = glm::dot(vel, collision.normal)*collision.normal;
-				velocities[f] -= 1.5f*bounce;
+				velocities[f] -= 0.5f*bounce;
 				positions[f] = collision.collisionPoint;
 			}
 		}

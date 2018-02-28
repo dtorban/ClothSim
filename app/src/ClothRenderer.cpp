@@ -1,1 +1,0 @@
-ClothRenderer.cpp

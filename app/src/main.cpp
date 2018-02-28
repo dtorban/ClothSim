@@ -9,7 +9,13 @@
 #include "VRMultithreadedApp.h"
 #include <api/VRTrackerEvent.h>
 #include "Force.h"
+#include "ClothSimulation.h"
 using namespace MinVR;
+
+ExplicitEulerIntegrator explicitEulerIntegrator;
+ExplicitEulerIntegrator semiImplicitEulerIntegrator(true);
+RungaKutta4Integrator rungaKutta4Integrator;
+ImplicitEulerIntegrator implicitEulerIntegrator;
 
 /**
  * MyVRApp is an example of a modern OpenGL using VBOs, VAOs, and shaders.  MyVRApp inherits
@@ -18,11 +24,10 @@ using namespace MinVR;
  */
 class MyVRApp : public VRMultithreadedApp {
 public:
-	MyVRApp(int argc, char** argv) : VRMultithreadedApp(argc, argv), model(1.0f), time(0.0f), dt(0.005), simTime(0.0), sphere(glm::vec3(0.5,-10.6,0.0), 0.0), sphere2(glm::vec3(0.5, -10.6, 0.0), 0.15), iterationsPerFrame(10) {
-        static ExplicitEulerIntegrator explicitEulerIntegrator;
-        static ExplicitEulerIntegrator semiImplicitEulerIntegrator(true);
-        static RungaKutta4Integrator rungaKutta4Integrator;
-        static ImplicitEulerIntegrator implicitEulerIntegrator;
+	MyVRApp(int argc, char** argv) : VRMultithreadedApp(argc, argv), model(1.0f), time(0.0f), dt(0.005), simTime(0.0), sphere(glm::vec3(0.5,-0.6,0.0), 0.5), sphere2(glm::vec3(0.5, -10.6, 0.0), 0.15), iterationsPerFrame(10),
+        cloth(rungaKutta4Integrator)
+     {
+
 
         int width = 20;
         int height = 20;
@@ -32,9 +37,9 @@ public:
 		float totalMass = 1.0f;
 
         integrator = &explicitEulerIntegrator;  dt = 0.0005; iterationsPerFrame = 2; ks = 500.0f; kd = 1.0f; totalMass = 20.0f;
-		integrator = &semiImplicitEulerIntegrator;  dt = 0.001; iterationsPerFrame = 10; ks = 8000.0f; kd = 3.0f; totalMass = 20.0f;
-		integrator = &rungaKutta4Integrator; dt = 0.001; iterationsPerFrame = 10; ks = 15000.0f; kd = 3.0f; totalMass = 20.0f;
-		integrator = &implicitEulerIntegrator; dt = 0.01; iterationsPerFrame = 1; ks = 15000.0f; kd = 3.0f; totalMass = 20.0f;
+		integrator = &semiImplicitEulerIntegrator;  dt = 0.001; iterationsPerFrame = 10; ks = 15000.0f; kd = 3.0f; totalMass = 20.0f;
+		//integrator = &rungaKutta4Integrator; dt = 0.001; iterationsPerFrame = 10; ks = 15000.0f; kd = 3.0f; totalMass = 20.0f;
+		//integrator = &implicitEulerIntegrator; dt = 0.01; iterationsPerFrame = 1; ks = 15000.0f; kd = 3.0f; totalMass = 20.0f;
         
         bendingKs = ks/2.0;
         bendingKd = kd/2.0;
@@ -52,8 +57,6 @@ public:
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 cloth.addNode((double)totalMass/(float(width+1)*float(height+1)), glm::vec3(transform*glm::vec4(-0.5f + dx*x, -0.5f + dy*y, 0.0f,1.0f)));
-               // nodes.push_back(glm::vec3(transform*glm::vec4(-0.5f + dx*x, -0.5f + dy*y, 0.0f,1.0f))); 
-                //std::cout << nodes[nodes.size()-1][0] << ", " << nodes[nodes.size()-1][1] << ", " << nodes[nodes.size()-1][2] << std::endl;           
                 normals.push_back(glm::vec3(0.0f, 0.0f, 1.0f));
                 colors.push_back(glm::vec3(0.5f, 0.5f, 0.5f));
             }
@@ -71,7 +74,7 @@ public:
         }
 
         for (int f = 0; f < indices.size(); f+=3) {
-            cloth.addForce(new AreoForce(indices[f], indices[f+1], indices[f+2], 1.0, 10.0, glm::vec3(10.5f, 0.0f, 10.0f)*1.0f, cloth.getPositions().size(), 0));
+            cloth.addForce(new AreoForce(indices[f], indices[f+1], indices[f+2], 10.0, 10.0, glm::vec3(10.5f, 0.0f, 10.0f)*0.0f, cloth.getPositions().size(), 0));
         }
 
         int node = 0;
@@ -120,7 +123,7 @@ public:
         }
 
         cloth.addForce(new ConstantForce(glm::vec3(0.0,-10.0,0.0), cloth.getPositions().size(), 0));
-		//cloth.addCollider(&sphere);
+		cloth.addCollider(&sphere);
 		//cloth.addCollider(&sphere2);
 
         integratorMemory = integrator->allocateMemory(cloth);
@@ -136,7 +139,7 @@ public:
 
         //event.printStructure();
 
-		std::cout << event.getName() << std::endl;
+		//std::cout << event.getName() << std::endl;
 		VRString type = (VRString)event.getValue("EventType");
 
 		// Set time since application began
@@ -274,6 +277,7 @@ public:
         const MyVRApp& app;
         GLuint vbo;
         GLuint elementBuffer;
+
     };
 
     class Renderer : public VRAppRenderer {
@@ -435,7 +439,7 @@ private:
     double lastTime;
     double dt;
     double simTime;
-    MassSpringSystem cloth;
+    ClothSimulation cloth;
     Integrator* integrator;
     void* integratorMemory;
 	SphereCollider sphere;
