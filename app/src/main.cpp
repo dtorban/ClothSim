@@ -38,14 +38,14 @@ public:
 
         integrator = &explicitEulerIntegrator;  dt = 0.0005; iterationsPerFrame = 2; ks = 500.0f; kd = 1.0f; totalMass = 20.0f;
 		integrator = &semiImplicitEulerIntegrator;  dt = 0.001; iterationsPerFrame = 10; ks = 15000.0f; kd = 3.0f; totalMass = 20.0f;
-		//integrator = &rungaKutta4Integrator; dt = 0.001; iterationsPerFrame = 10; ks = 15000.0f; kd = 3.0f; totalMass = 20.0f;
-		//integrator = &implicitEulerIntegrator; dt = 0.01; iterationsPerFrame = 1; ks = 15000.0f; kd = 3.0f; totalMass = 20.0f;
+		integrator = &rungaKutta4Integrator; dt = 0.001; iterationsPerFrame = 10; ks = 15000.0f; kd = 3.0f; totalMass = 20.0f;
+		integrator = &implicitEulerIntegrator; dt = 0.01; iterationsPerFrame = 1; ks = 15000.0f; kd = 3.0f; totalMass = 20.0f;
         
         bendingKs = ks/2.0;
         bendingKd = kd/2.0;
 
         //glm::mat4 transform = glm::translate(glm::mat4(1), glm::vec3(0,-0.5,0));
-        model = glm::translate(glm::mat4(1), glm::vec3(0.5,1.5,0));
+        model = glm::translate(glm::mat4(1), glm::vec3(-0.1,1.0,0));
         model = glm::scale(model, glm::vec3(1.0f)*2.0f);
         glm::mat4 transform(1.0f);
         transform = glm::rotate(transform, float(-3.141519 / 2), glm::vec3(1.0, 0.0, 0.0));
@@ -74,7 +74,7 @@ public:
         }
 
         for (int f = 0; f < indices.size(); f+=3) {
-            cloth.addForce(new AreoForce(indices[f], indices[f+1], indices[f+2], 10.0, 10.0, glm::vec3(10.5f, 0.0f, 10.0f)*0.0f, cloth.getPositions().size(), 0));
+            cloth.addForce(new AreoForce(indices[f], indices[f+1], indices[f+2], 5.0, 5.0, glm::vec3(10.0f, 0.0f, 10.0f)*0.1f, cloth.getPositions().size(), 0));
         }
 
         int node = 0;
@@ -82,7 +82,7 @@ public:
             for (int y = 0; y < height; y++) {
                 //if (x == 2 && y == 0) {
                 if (x == 0) {
-                //if ((x == 0 && y == 0) || (x == 0 && y == height-1)) {
+                //if ((x == 0 &&integrator y == 0) || (x == 0 && y == height-1)) {
                    cloth.addForce(new AnchorForce(node, cloth.getPositions()[node], ks, kd, cloth.getPositions().size(), 0));
                 }
 
@@ -330,7 +330,8 @@ public:
                         "out vec4 colorOut;"
                         ""
                         "void main() { "
-                        "   colorOut = vec4((norm/2.0) + 0.5, 1.0);"
+//                        "   vec3 newNorm = (norm/2.0) + 0.5;"
+                        "   colorOut = vec4(vec3(dot(norm,normalize(vec3(1.0)))/2.0 + 0.5), 1.0);"
                         "}";
                 fshader = compileShader(fragmentShader, GL_FRAGMENT_SHADER);
 
