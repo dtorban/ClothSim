@@ -24,7 +24,7 @@ ImplicitEulerIntegrator implicitEulerIntegrator;
  */
 class MyVRApp : public VRMultithreadedApp {
 public:
-	MyVRApp(int argc, char** argv) : VRMultithreadedApp(argc, argv), model(1.0f), time(0.0f), dt(0.005), simTime(0.0), sphere(glm::vec3(0.5,-0.6,0.0), 0.5), sphere2(glm::vec3(0.5, -10.6, 0.0), 0.15), iterationsPerFrame(10),
+	MyVRApp(int argc, char** argv) : VRMultithreadedApp(argc, argv), simulate(true), model(1.0f), time(0.0f), dt(0.005), simTime(0.0), sphere(glm::vec3(0.5,-0.6,0.0), 0.5), sphere2(glm::vec3(0.5, -10.6, 0.0), 0.15), iterationsPerFrame(10),
         cloth(rungaKutta4Integrator)
      {
 
@@ -178,6 +178,10 @@ public:
         if (event.getName() == "KbdP_Down") {
             ks+=1000;
         }
+
+        if (event.getName() == "KbdK_Down") {
+            simulate = !simulate;
+        }
 	}
 
     void update() {
@@ -199,7 +203,9 @@ public:
                 //nodes[f] += glm::vec3(1.0f, 0.0f, 0.0f)*float(dt);
             //}
             //std::cout << simTime << std::endl;
-            integrator->step(cloth, dt, integratorMemory);
+            if (simulate) {
+              integrator->step(cloth, dt, integratorMemory);  
+            }
             normals = calculateNormals(indices, cloth.getPositions());
             cloth.handleCollisions();
             simTime += dt;
@@ -450,6 +456,7 @@ private:
     int iterationsPerFrame;
     double ks, kd;
     double bendingKs, bendingKd;
+    bool simulate;
 };
 
 /// Main method which creates and calls application
